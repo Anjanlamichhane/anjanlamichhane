@@ -4,6 +4,7 @@
 * Author: BootstrapMade.com
 * License: https://bootstrapmade.com/license/
 */
+
 (function() {
   "use strict";
 
@@ -191,6 +192,7 @@
   /**
    * Initiate portfolio lightbox 
    */
+  
   const portfolioLightbox = GLightbox({
     selector: '.portfolio-lightbox'
   });
@@ -252,5 +254,33 @@
       mirror: false
     })
   });
+  document.addEventListener("DOMContentLoaded", function() {
+  const form = document.getElementById("contact-form");
+  const loading = document.querySelector(".form-status .loading");
+  const success = document.querySelector(".form-status .sent-message");
+  const error = document.querySelector(".form-status .error-message");
+
+  if (!form) return;
+
+  form.addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    // Show loading
+    loading.style.display = "block";
+    success.style.display = "none";
+    error.style.display = "none";
+
+    emailjs.sendForm("service_aq6wpmf", "template_zopnuk5", this)
+      .then(function() {
+        loading.style.display = "none";
+        success.style.display = "block";
+        form.reset();
+      }, function(err) {
+        loading.style.display = "none";
+        error.innerText = "Failed to send message. Try again.";
+        error.style.display = "block";
+      });
+  });
+});
 
 })()
