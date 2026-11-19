@@ -56,11 +56,28 @@ canvas{display:block;border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.55)}
 #toast{position:fixed;top:calc(64px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-10px);background:var(--panel);color:var(--ink);border:1px solid var(--gold);border-radius:999px;padding:8px 18px;font-weight:700;opacity:0;pointer-events:none;transition:.3s;z-index:4;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){.dice.roll{animation:none}}
+
+#bChat{position:relative;display:none}
+#bChat .bd{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:#d94a3a;color:#fff;font:700 11px/18px 'Mukta';text-align:center;display:none;padding:0 4px}
+#chat{position:fixed;right:10px;top:calc(60px + env(safe-area-inset-top,0px));width:min(320px,calc(100% - 20px));height:min(320px,calc(100% - 200px));display:none;flex-direction:column;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(10px);z-index:4;box-shadow:0 10px 30px rgba(0,0,0,.4);overflow:hidden}
+#chat.show{display:flex}
+#chat .ch{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid var(--line);font-weight:700;font-size:14px}
+#chat .ch button{padding:2px 8px;font-size:14px;border-radius:8px}
+#cLog{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px;-webkit-user-select:text;user-select:text}
+#cLog div{max-width:82%;padding:5px 10px;border-radius:12px;font-size:14px;line-height:1.3;word-break:break-word}
+#cLog .me{align-self:flex-end;background:linear-gradient(180deg,var(--gold),var(--gold2));color:#2b1608}
+#cLog .fr{align-self:flex-start;background:var(--line);color:var(--ink)}
+#cLog .sys{align-self:center;background:none;color:var(--mut);font-size:12px}
+#chat .cq{display:flex;gap:4px;padding:4px 8px 0}
+#chat .cq button{flex:1;padding:3px;font-size:15px;border-radius:10px}
+#chat .cf{display:flex;gap:6px;padding:6px 8px 8px}
+#cIn{flex:1;min-width:0;padding:8px 10px;font:15px 'Mukta',sans-serif;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--ink);-webkit-user-select:text;user-select:text}
+#cSend{padding:8px 12px}
 </style></head><body>
 <div class="app">
  <header class="top">
   <div class="brand"><h1>साँप सिँढी</h1><span>Snakes &amp; Ladders</span></div>
-  <div class="btns"><button id="bMenu" class="pri">☰<span class="lb"> Menu</span></button><button id="bRules">?<span class="lb"> Rules</span></button><button id="bSnd" title="Sound">🔊</button><a class="btn" href="games.html" title="All games">🎮<span class="lb"> Games</span></a></div>
+  <div class="btns"><button id="bMenu" class="pri">☰<span class="lb"> Menu</span></button><button id="bRules">?<span class="lb"> Rules</span></button><button id="bSnd" title="Sound">🔊</button><button id="bChat" title="Chat">💬<span class="bd" id="cBd"></span></button><a class="btn" href="games.html" title="All games">🎮<span class="lb"> Games</span></a></div>
  </header>
  <div id="stage"><canvas id="c" aria-label="Snakes and ladders board"></canvas></div>
  <section class="hud">
@@ -69,6 +86,10 @@ canvas{display:block;border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.55)}
  </section>
 </div>
 <div id="toast"></div>
+<div id="chat"><div class="ch"><span>💬 Chat</span><button id="cX">✕</button></div>
+ <div id="cLog"></div>
+ <div class="cq"><button>👍</button><button>😂</button><button>😮</button><button>🔥</button><button>GG</button></div>
+ <div class="cf"><input id="cIn" maxlength="200" placeholder="Type a message…" autocomplete="off"><button class="pri" id="cSend">Send</button></div></div>
 
 <div class="modal show" id="mMenu"><div class="box">
  <h2>साँप सिँढी</h2><p class="sub">Climb the ladders, dodge the snakes, reach HOME first</p>
@@ -240,7 +261,7 @@ function hud(){const pl=$('pl');pl.innerHTML='';P.forEach((p,i)=>{const d=docume
  $('msg').textContent=busy?'':p.kind=='h'?(mode=='2'?p.name+', roll the dice':'Your turn — roll the dice'):p.kind=='a'?p.name+' is rolling…':'Waiting for your friend…'}
 
 /* ---------- game flow ---------- */
-function startGame(md,n,slot){gid++;mode=md;over=false;busy=false;turn=0;q=[];conf=[];started=true;if(md!='o')closeNet();mySlot=slot||0;nPl=n;
+function startGame(md,n,slot){gid++;mode=md;over=false;busy=false;turn=0;q=[];conf=[];started=true;if(md!='o'){closeNet();chatReset()}$('bChat').style.display=md=='o'?'inline-block':'none';if(md!='o')$('chat').classList.remove('show');else if(!$('cLog').children.length)chatSys('Connected — say hi! 👋');mySlot=slot||0;nPl=n;
  P=Array.from({length:n},(_,i)=>({pos:0,col:TC[i],vz:0,
   name:md=='c'?(i==0?'You':'Computer'+(n>2?' '+i:'')):md=='2'?TN[i]+' player':(i==mySlot?'You':'Friend'),
   kind:md=='c'?(i==0?'h':'a'):md=='2'?'h':(i==mySlot?'h':'r')}));
@@ -278,7 +299,7 @@ let peer=null,conn=null;
 const oMsg=t=>{$('oStatus').textContent=t};
 const CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function wire(c){conn=c;
- c.on('data',d=>{if(!d)return;if(d.t=='start')startGame('o',2,mySlot);else if(d.t=='roll'&&mode=='o'&&Number.isInteger(d.v)&&d.v>=1&&d.v<=6){q.push(d.v);pump()}});
+ c.on('data',d=>{if(!d)return;if(d.t=='chat'&&typeof d.x=='string'){chatIn(d.x.slice(0,200));return}if(d.t=='start')startGame('o',2,mySlot);else if(d.t=='roll'&&mode=='o'&&Number.isInteger(d.v)&&d.v>=1&&d.v<=6){q.push(d.v);pump()}});
  c.on('close',()=>{if(conn===c){conn=null;if(mode=='o'&&!over){busy=true;$('bRoll').disabled=true;toast('Friend disconnected');$('msg').textContent='Friend disconnected'}else oMsg('Disconnected')}});
  c.on('error',()=>oMsg('Connection problem'))}
 function closeNet(){try{conn&&conn.close()}catch(e){}try{peer&&peer.destroy()}catch(e){}conn=null;peer=null}
@@ -317,5 +338,18 @@ document.querySelectorAll('.modal').forEach(m=>m.addEventListener('pointerdown',
 addEventListener('keydown',e=>{if(document.querySelector('.modal.show'))return;if(e.key==' '||e.key=='Enter'){if(P[turn]&&P[turn].kind=='h'&&!busy&&!over){e.preventDefault();rollNow()}}});
 new ResizeObserver(size).observe($('stage'));addEventListener('resize',size);
 size();face(0);requestAnimationFrame(loop);
+
+/* ---------- chat ---------- */
+let unread=0;
+function chatAdd(cls,txt){const d=document.createElement('div');d.className=cls;d.textContent=txt;const l=$('cLog');l.appendChild(d);while(l.children.length>100)l.removeChild(l.firstChild);l.scrollTop=l.scrollHeight}
+function chatSys(t){chatAdd('sys',t)}
+function chatReset(){$('cLog').innerHTML='';unread=0;$('cBd').style.display='none'}
+function chatIn(t){chatAdd('fr',t);if(!$('chat').classList.contains('show')){unread++;$('cBd').textContent=unread;$('cBd').style.display='block';toast('💬 '+(t.length>28?t.slice(0,28)+'…':t))}sfx.hop()}
+function chatSend(t){t=t.trim().slice(0,200);if(!t)return;if(!conn||!conn.open){toast('Not connected');return}conn.send({t:'chat',x:t});chatAdd('me',t)}
+function chatToggle(open){const c=$('chat'),o=open==null?!c.classList.contains('show'):open;c.classList.toggle('show',o);if(o){unread=0;$('cBd').style.display='none';$('cLog').scrollTop=1e9;if(innerWidth>520)$('cIn').focus()}}
+$('bChat').onclick=()=>chatToggle();$('cX').onclick=()=>chatToggle(false);
+$('cSend').onclick=()=>{chatSend($('cIn').value);$('cIn').value='';$('cIn').focus()};
+$('cIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key=='Enter'){e.preventDefault();$('cSend').click()}});
+document.querySelectorAll('#chat .cq button').forEach(b=>b.onclick=()=>chatSend(b.textContent));
 </script>
 </body></html>
