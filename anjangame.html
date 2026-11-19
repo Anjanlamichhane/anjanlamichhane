@@ -52,7 +52,17 @@ canvas{cursor:grab}
  <h2>बाघचाल</h2><p class="sub">Nepal’s classic hunt — choose your side</p><div class="seg" id="lvl"><button data-l="0">Easy</button><button data-l="1" class="on">Normal</button><button data-l="2">Hard</button></div>
  <button class="pri" data-m="g">🐐 Play Goats · vs AI Tigers</button>
  <button class="pri" data-m="t">🐯 Play Tigers · vs AI Goats</button>
- <button data-m="2">👥 Two players · same screen</button><button id="bResume" style="display:none">← Back to game</button>
+ <button data-m="2">👥 Two players · same screen</button><button id="bOnline" class="pri">🌐 Play online · with a friend</button><button id="bResume" style="display:none">← Back to game</button>
+</div></div>
+<div class="modal" id="mOnline"><div class="box">
+ <h2>🌐 Online</h2><p class="sub">Play with a friend on another device</p>
+ <button class="pri" id="bHost">Create a room</button>
+ <div id="oCode" style="display:none;text-align:center;font:700 40px/1.2 'Mukta';letter-spacing:8px;color:var(--gold2);margin:10px 0 0"></div>
+ <p class="sub" style="margin-top:14px">or join a friend’s room</p>
+ <input id="oIn" maxlength="4" placeholder="CODE" autocomplete="off" style="width:100%;box-sizing:border-box;padding:12px;font:700 24px 'Mukta';text-align:center;letter-spacing:6px;text-transform:uppercase;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);-webkit-user-select:text;user-select:text">
+ <button class="pri" id="bJoin">Join room</button>
+ <p class="sub" id="oStatus" style="margin-top:12px;min-height:20px"></p>
+ <button id="bOBack">← Back</button>
 </div></div>
 <div class="modal" id="mRules"><div class="box"><h2>How to play</h2>
  <ul><li>Four <b>tigers</b> start in the corners. The <b>goats</b> have 20 pieces and move first.</li>
@@ -64,6 +74,7 @@ canvas{cursor:grab}
 <div class="modal" id="mEnd"><div class="box"><h2 id="eT"></h2><p class="sub" id="eP"></p><button class="pri" id="bAgain">Play again</button><button id="bView">View board</button></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 let snd=true,AC=null,tt;
@@ -171,7 +182,7 @@ const trail=new THREE.Group();scene.add(trail);
 function showTrail(m){while(trail.children.length)trail.remove(trail.children[0]);if(!m)return;[m.from,m.to,m.cap].forEach((i,j)=>{if(i==null)return;const p=pos(i),r=new THREE.Mesh(new THREE.RingGeometry(.3,.4,28),new THREE.MeshBasicMaterial({color:j==2?0xff5040:0xffd25a,transparent:true,opacity:.55,side:THREE.DoubleSide}));r.rotation.x=-Math.PI/2;r.position.set(p.x,p.y+.03,p.z);trail.add(r)})}
 const hov=new THREE.Mesh(new THREE.RingGeometry(.42,.5,28),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.75,side:THREE.DoubleSide}));hov.rotation.x=-Math.PI/2;hov.visible=false;scene.add(hov);
 function hover(e){let ok=false;if(started&&!busy&&!over&&isH(st.turn)){v2.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(v2,camera);const h=ray.intersectObjects(picks)[0];if(h){const i=h.object.userData.i;ok=st.turn==2&&st.hand>0?!st.b[i]:st.b[i]==st.turn||(sel!=null&&gen(st).some(x=>x.from==sel&&x.to==i));if(ok){const p=pos(i);hov.position.set(p.x,p.y+.06,p.z)}}}hov.visible=ok;cv.style.cursor=ok?'pointer':'grab'}
-function hint(){if(!started||busy||over||!isH(st.turn))return;const L=level;level=2;const m=ai(st);level=L;clearMarks();if(m.from!=null)ring(m.from,0x66ccff,.45);ring(m.to,0x66ccff,.3);toast('💡 Try the blue rings')}
+function hint(){if(mode=='o')return;if(!started||busy||over||!isH(st.turn))return;const L=level;level=2;const m=ai(st);level=L;clearMarks();if(m.from!=null)ring(m.from,0x66ccff,.45);ring(m.to,0x66ccff,.3);toast('💡 Try the blue rings')}
 function record(w){try{const k='baagchal-wins',r=JSON.parse(localStorage.getItem(k)||'{"g":0,"t":0}');r[w==2?'g':'t']++;localStorage.setItem(k,JSON.stringify(r));rec=r}catch(e){}}
 const isH=t=>mode=='2'||t==human;
 const ease=u=>u*u*(3-2*u);
@@ -185,16 +196,17 @@ function hints(){clearMarks();if(over||busy||!isH(st.turn))return;
 function hud(){const mv=gen(st,1),free=new Set(mv.map(x=>x.from)).size;
  pips('gPips',5,st.cap,'f');pips('tPips',4,4-free,'t');$('gHand').textContent=st.hand;$('gCap').textContent=st.cap+' / 5 lost';$('tTrap').textContent=4-free;
  $('cg').classList.toggle('on',st.turn==2&&!over);$('ct').classList.toggle('on',st.turn==1&&!over);
- $('turn').textContent=(st.turn==2?'🐐 Goats':'🐯 Tigers')+(isH(st.turn)?' — your move':'');
- $('msg').textContent=!isH(st.turn)?'AI is thinking…':st.turn==2?(st.hand>0?'Tap an empty point to place a goat':'Select a goat, then a green point'):'Select a tiger · red rings capture a goat'}
+ $('turn').textContent=(st.turn==2?'🐐 Goats':'🐯 Tigers')+(isH(st.turn)?' — your move':mode=='o'?' — friend’s move':'');
+ $('msg').textContent=!isH(st.turn)?(mode=='o'?'Waiting for your friend…':'AI is thinking…'):st.turn==2?(st.hand>0?'Tap an empty point to place a goat':'Select a goat, then a green point'):'Select a tiger · red rings capture a goat'}
 function end(w,t){over=true;busy=true;sfx('win');record(w);hud();clearMarks();const g=gid;setTimeout(()=>{if(g!=gid)return;$('eT').textContent=w==1?'Tigers win! 🐯':'Goats win! 🐐';$('eP').textContent=t+(rec?'  ·  Wins — 🐐 '+rec.g+'  🐯 '+rec.t:'');$('mEnd').classList.add('show')},900)}
 function after(){hud();
  if(st.cap>=5)return end(1,'Five goats were captured.');
  if(!gen(st).length)return end(st.turn==1?2:1,st.turn==1?'Every tiger is trapped — no moves left.':'The goats have no legal moves.');
  busy=!isH(st.turn);hints();
- if(busy){const g=gid;setTimeout(()=>{if(g==gid&&!over)doMove(ai(st))},650)}}
-function doMove(m){hist.push(st);busy=true;clearMarks();sel=null;
- const done=()=>{st=ap(st,m);showTrail(m);if(m.k=='j')toast('🐯 Goat captured!');if(m.k=='p'&&st.hand==0)toast('All 20 goats placed — now slide them');after()};
+ if(busy&&mode!='o'){const g=gid;setTimeout(()=>{if(g==gid&&!over)doMove(ai(st))},650)}
+ if(mode=='o')pump()}
+function doMove(m,rem){if(mode=='o'&&!rem&&conn&&conn.open)conn.send({t:'move',m});inFlight=true;hist.push(st);busy=true;clearMarks();sel=null;
+ const done=()=>{inFlight=false;st=ap(st,m);showTrail(m);if(m.k=='j')toast('🐯 Goat captured!');if(m.k=='p'&&st.hand==0)toast('All 20 goats placed — now slide them');after()};
  if(m.k=='p')setTimeout(()=>sfx('place'),400);else sfx(m.k=='j'?'jump':'move');
  if(m.k=='p'){const g=goat(),p=pos(m.to);g.position.set(p.x,p.y+3.5,p.z);g.rotation.y=(Math.random()-.5)*1.2;scene.add(g);pieces[m.to]=g;
   anim(.55,u=>{g.position.y=p.y+3.5*(1-u)*(1-u)},done);return}
@@ -207,11 +219,11 @@ function click(i){if(busy||over)return;const t=st.turn;
  if(st.b[i]==t){sel=i;sfx('sel');hints();return}
  if(sel!=null){const m=gen(st).find(x=>x.from==sel&&x.to==i);if(m)doMove(m);else{sel=null;hints()}}}
 function sync(){showTrail(null);pieces.forEach(p=>p&&scene.remove(p));pieces=[];st.b.forEach((v,i)=>{if(!v)return;const o=v==1?tiger():goat(),p=pos(i);o.position.copy(p);o.rotation.y=v==1?Math.atan2(p.x,p.z):(Math.random()-.5)*1.2;scene.add(o);pieces[i]=o})}
-function undo(){if(!started||(busy&&!over))return;let k=hist.length-1;while(k>=0&&!isH(hist[k].turn))k--;if(k<0)return;st=hist[k];hist.length=k;gid++;anims=[];sel=null;over=false;sync();$('mEnd').classList.remove('show');after()}
-function start(md){gid++;hist=[];started=true;th=0;ph=.95;zoom=1;cam();mode=md;human=md=='g'?2:md=='t'?1:0;
+function undo(){if(mode=='o')return;if(!started||(busy&&!over))return;let k=hist.length-1;while(k>=0&&!isH(hist[k].turn))k--;if(k<0)return;st=hist[k];hist.length=k;gid++;anims=[];sel=null;over=false;sync();$('mEnd').classList.remove('show');after()}
+function start(md){if(md!='o')closeNet();pending=[];inFlight=false;$('bAgain').textContent=md=='o'?'Rematch (swap sides)':'Play again';gid++;hist=[];started=true;th=0;ph=.95;zoom=1;cam();mode=md;human=md=='g'?2:md=='t'?1:md=='o'?onSide:0;
  anims=[];clearMarks();sel=null;over=false;st=newState();sync();
  
- $('mMenu').classList.remove('show');$('mEnd').classList.remove('show');after()}
+ $('mMenu').classList.remove('show');$('mOnline').classList.remove('show');$('mEnd').classList.remove('show');after()}
 /* ---------- camera + input ---------- */
 let th=.0,ph=.95,zoom=1;
 function cam(){const asp=innerWidth/innerHeight,d=Math.max(9.8,9.6/asp)*zoom;
@@ -232,7 +244,7 @@ $('bHint').onclick=hint;$('bSnd').onclick=()=>{snd=!snd;$('bSnd').textContent=sn
 document.querySelectorAll('#lvl button').forEach(b=>b.onclick=()=>{level=+b.dataset.l;document.querySelectorAll('#lvl button').forEach(x=>x.classList.toggle('on',x==b))});
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k=='u')undo();if(k=='h')hint();if(k=='r')$('bCam').click();if(k=='s')$('bSnd').click()});
 $('bMenu').onclick=openMenu;$('bUndo').onclick=undo;$('bResume').onclick=()=>$('mMenu').classList.remove('show');
-$('bAgain').onclick=()=>{$('mEnd').classList.remove('show');openMenu()};$('bView').onclick=()=>$('mEnd').classList.remove('show');
+$('bAgain').onclick=()=>{if(mode=='o'&&conn&&conn.open){$('mEnd').classList.remove('show');begin(3-human)}else{$('mEnd').classList.remove('show');openMenu()}};$('bView').onclick=()=>$('mEnd').classList.remove('show');
 document.querySelectorAll('.modal').forEach(m=>m.addEventListener('pointerdown',e=>{if(e.target===m&&m.id!='mEnd'&&!(m.id=='mMenu'&&!started))m.classList.remove('show')}));
 addEventListener('keydown',e=>{if(e.key=='Escape'){if($('mRules').classList.contains('show'))$('mRules').classList.remove('show');else if($('mMenu').classList.contains('show')){if(started&&!over)$('mMenu').classList.remove('show')}else openMenu()}});
 document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>start(b.dataset.m));
@@ -245,4 +257,39 @@ function loop(now){requestAnimationFrame(loop);
 st=newState();size();requestAnimationFrame(loop);
 [0,4,20,24].forEach(i=>{const t=tiger(),p=pos(i);t.position.copy(p);t.rotation.y=Math.atan2(p.x,p.z);scene.add(t);pieces[i]=t});
 hud();
+
+/* ---------- online play (WebRTC via PeerJS) ---------- */
+let peer=null,conn=null,onSide=2,pending=[],inFlight=false;
+const oMsg=t=>{$('oStatus').textContent=t};
+const CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function startOnline(side){onSide=side;start('o');toast(side==2?'You are 🐐 Goats (move first)':'You are 🐯 Tigers')}
+function begin(mySide){startOnline(mySide);if(conn&&conn.open)conn.send({t:'start',side:3-mySide})}
+function pump(){if(mode!='o'||over||inFlight||!pending.length||st.turn==human)return;
+ const m=pending.shift(),ok=gen(st).find(x=>x.k==m.k&&x.from==m.from&&x.to==m.to);
+ if(ok)doMove(ok,true);else pending.length=0}
+function wire(c){conn=c;
+ c.on('data',d=>{if(!d)return;if(d.t=='start')startOnline(d.side);else if(d.t=='move'&&mode=='o'){pending.push(d.m);pump()}});
+ c.on('close',()=>{if(conn===c){conn=null;if(mode=='o'&&!over){busy=true;toast('Friend disconnected');$('msg').textContent='Friend disconnected'}else oMsg('Disconnected')}});
+ c.on('error',()=>oMsg('Connection problem'))}
+function closeNet(){try{conn&&conn.close()}catch(e){}try{peer&&peer.destroy()}catch(e){}conn=null;peer=null}
+function needPeer(cb){if(window.Peer)return cb();oMsg('Loading online library…');
+ const el=document.createElement('script');el.src='https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js';
+ el.onload=()=>window.Peer?cb():oMsg('Online library failed to load');el.onerror=()=>oMsg('Online library blocked/failed to load — check your internet or ad-blocker');
+ document.head.appendChild(el)}
+function hostRoom(){needPeer(hostRoom2)}
+function hostRoom2(){closeNet();$('oCode').style.display='none';oMsg('Creating room…');
+ const code=Array.from({length:4},()=>CH[Math.random()*CH.length|0]).join('');
+ peer=new Peer('baagchal-'+code);const hto=setTimeout(()=>oMsg('Can’t reach the matchmaking server (0.peerjs.com). Try other Wi-Fi/mobile data, or turn off VPN/ad-blocker.'),8000);
+ peer.on('open',()=>{clearTimeout(hto);$('oCode').textContent=code;$('oCode').style.display='block';oMsg('Share this code with your friend. Waiting…')});
+ peer.on('connection',c=>{if(conn&&conn.open){c.close();return}c.on('open',()=>{wire(c);begin(2)})});
+ peer.on('error',e=>{clearTimeout(hto);if(e.type=='unavailable-id')hostRoom2();else oMsg('Could not create room ('+e.type+')')})}
+function joinRoom(){needPeer(joinRoom2)}
+function joinRoom2(){const code=$('oIn').value.trim().toUpperCase();if(code.length!=4){oMsg('Enter the 4-letter code');return}
+ closeNet();oMsg('Connecting…');peer=new Peer();
+ const to=setTimeout(()=>oMsg('Still trying… check the code and your internet'),12000);
+ peer.on('open',()=>{const c=peer.connect('baagchal-'+code,{reliable:true});c.on('open',()=>{clearTimeout(to);wire(c);oMsg('Connected! Starting…')})});
+ peer.on('error',e=>{clearTimeout(to);oMsg(e.type=='peer-unavailable'?'Room not found — check the code':'Could not connect ('+e.type+')')})}
+$('bOnline').onclick=()=>{$('mMenu').classList.remove('show');$('mOnline').classList.add('show')};
+$('bHost').onclick=hostRoom;$('bJoin').onclick=joinRoom;
+$('bOBack').onclick=()=>{if(!(mode=='o'&&conn&&conn.open))closeNet();$('oCode').style.display='none';oMsg('');$('mOnline').classList.remove('show');openMenu()};
 </script></body></html>
