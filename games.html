@@ -3,6 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Games — Anjan Lamichhane</title>
 <meta name="description" content="Play games built by Anjan Lamichhane — alone, or online with a friend.">
+<script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&family=Yatra+One&display=swap">
 <style>
 :root{--bg:#eef1f8;--card:#ffffff;--ink:#16203d;--mut:#5b6685;--line:rgba(22,32,61,.14);--gold:#e9b44c;--gold2:#c9822a;--btn:#1d2a4d;--btnink:#fff;--board:#1d2a4d;
@@ -33,9 +34,13 @@ ul{list-style:none;margin:0;padding:0;display:grid;gap:14px}
  .thumb{width:84px;height:84px}
  .game h2{font-size:22px}.game h2 small{display:block;margin:2px 0 0}
  .play{grid-column:1/-1;text-align:center}}
-@media (prefers-reduced-motion:reduce){.game{transition:none}.game:hover{transform:none}}
+.theme{position:fixed;top:calc(env(safe-area-inset-top,0px) + 56px);right:16px;z-index:5;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:20px;line-height:1;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18);transition:transform .2s,border-color .2s}
+.theme:hover{transform:scale(1.08) rotate(15deg);border-color:var(--gold2)}
+.theme:focus-visible{outline:none;box-shadow:0 0 0 3px var(--gold)}
+@media (prefers-reduced-motion:reduce){.game,.theme{transition:none}.game:hover,.theme:hover{transform:none}}
 </style></head><body>
 <svg class="flags" viewBox="0 0 760 46" preserveAspectRatio="none" aria-hidden="true" id="flags"></svg>
+<button class="theme" id="theme" type="button" aria-label="Switch theme"></button>
 <div class="wrap">
  <a class="back" href="/">← Back to anjanlamichhane.com.np</a>
  <h1>Games</h1>
@@ -58,6 +63,12 @@ GAMES.forEach(g=>{const li=document.createElement('li');
  li.innerHTML='<a class="game" href="'+g.url+'">'+g.thumb+'<div><h2>'+g.name+(g.nepali?'<small>'+g.nepali+'</small>':'')+'</h2><p>'+g.desc+'</p><span class="meta">'+g.meta+'</span></div><span class="play">Play</span></a>';
  ul.appendChild(li)});
 const soon=document.createElement('li');soon.innerHTML='<div class="game soon">More games are on the way.</div>';ul.appendChild(soon);
+/* dark / light switch: remembers your choice, otherwise follows the device */
+(function(){const root=document.documentElement,btn=document.getElementById('theme'),mq=matchMedia('(prefers-color-scheme: dark)');
+ const cur=()=>root.dataset.theme||(mq.matches?'dark':'light');
+ function paint(){const d=cur()==='dark';btn.textContent=d?'☀️':'🌙';btn.setAttribute('aria-label',d?'Switch to light mode':'Switch to dark mode');btn.setAttribute('aria-pressed',String(d))}
+ btn.onclick=()=>{const n=cur()==='dark'?'light':'dark';root.dataset.theme=n;try{localStorage.setItem('theme',n)}catch(e){}paint()};
+ if(mq.addEventListener)mq.addEventListener('change',paint);paint()})();
 /* prayer-flag bunting, same colours as the game backdrop */
 (function(){const C=['#3b6fd4','#f4f1e8','#d94a3a','#3fa066','#e9b44c'],n=19,w=760/n;let h='<path d="M0 6Q380 30 760 6" fill="none" stroke="#8a6a3a" stroke-width="1.5" vector-effect="non-scaling-stroke"/>';
  for(let i=0;i<n;i++){const x=i*w+w*.15,t=(x+w*.35)/760,y=6+Math.sin(Math.PI*t)*12;h+='<path d="M'+x+' '+(y)+'h'+(w*.7)+'l'+(-w*.35)+' 18z" fill="'+C[i%5]+'" opacity=".92" transform="translate(0,'+(0)+')"/>'}
