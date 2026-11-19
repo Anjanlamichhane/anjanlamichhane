@@ -36,11 +36,28 @@ canvas{cursor:grab}
 .box button{display:block;width:100%;margin-top:8px;padding:12px;font-size:16px}
 .box ul{padding-left:18px;margin:8px 0}
 @media (max-width:520px){.lb{display:none}.top{flex-wrap:wrap}.brand h1{font-size:21px}.brand span{display:none}button{padding:7px 10px;font-size:13px}.card .n{font-size:24px}.card b{font-size:13px}}
+
+#bChat{position:relative;display:none}
+#bChat .bd{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:#d94a3a;color:#fff;font:700 11px/18px 'Mukta';text-align:center;display:none;padding:0 4px;box-sizing:border-box}
+#chat{position:fixed;right:10px;top:calc(70px + env(safe-area-inset-top,0px));width:min(320px,calc(100% - 20px));height:min(300px,calc(100% - 230px));display:none;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(10px);z-index:4;box-shadow:0 10px 30px rgba(0,0,0,.35);overflow:hidden}
+#chat.show{display:flex}
+#chat .ch{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-bottom:1px solid var(--line);font-weight:700;font-size:14px}
+#chat .ch button{padding:2px 8px;font-size:14px;border-radius:8px}
+#cLog{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px;-webkit-user-select:text;user-select:text}
+#cLog div{max-width:82%;padding:5px 10px;border-radius:12px;font-size:14px;line-height:1.3;word-break:break-word}
+#cLog .me{align-self:flex-end;background:linear-gradient(180deg,var(--gold),var(--gold2));color:#2b1608}
+#cLog .fr{align-self:flex-start;background:var(--line);color:var(--ink)}
+#cLog .sys{align-self:center;background:none;color:var(--mut);font-size:12px}
+#chat .cq{display:flex;gap:4px;padding:4px 8px 0}
+#chat .cq button{flex:1;padding:3px;font-size:15px;border-radius:10px}
+#chat .cf{display:flex;gap:6px;padding:6px 8px 8px}
+#cIn{flex:1;min-width:0;padding:8px 10px;font:15px 'Mukta',sans-serif;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);-webkit-user-select:text;user-select:text}
+#cSend{padding:8px 12px}
 </style></head><body>
 <canvas id="c"></canvas><div id="toast"></div>
 <header class="top">
  <div class="brand"><h1>बाघचाल</h1><span>Baagchal · Tigers &amp; Goats</span></div>
- <div class="btns"><button id="bMenu" class="pri">☰<span class="lb"> Menu</span></button><button id="bUndo">↩<span class="lb"> Undo</span></button><button id="bHint">💡<span class="lb"> Hint</span></button><button id="bRules">?<span class="lb"> Rules</span></button><button id="bCam">⟲<span class="lb"> View</span></button><button id="bSnd">🔊</button></div>
+ <div class="btns"><button id="bMenu" class="pri">☰<span class="lb"> Menu</span></button><button id="bUndo">↩<span class="lb"> Undo</span></button><button id="bHint">💡<span class="lb"> Hint</span></button><button id="bRules">?<span class="lb"> Rules</span></button><button id="bCam">⟲<span class="lb"> View</span></button><button id="bSnd">🔊</button><button id="bChat">💬<span class="bd" id="cBd"></span></button></div>
 </header>
 <main class="hud">
  <div class="card" id="cg"><b>🐐 Goats</b><div class="n" id="gHand">20</div><small>in hand</small><small id="gCap">0 / 5 lost</small><div class="pips" id="gPips"></div></div>
@@ -48,6 +65,10 @@ canvas{cursor:grab}
  <div class="card" id="ct"><b>🐯 Tigers</b><div class="n" id="tTrap">0</div><small>trapped of 4</small><div class="pips" id="tPips"></div></div>
 </main>
 
+<div id="chat"><div class="ch"><span>💬 Chat</span><button id="cX">✕</button></div>
+ <div id="cLog"></div>
+ <div class="cq"><button>👍</button><button>😂</button><button>😮</button><button>🔥</button><button>GG</button></div>
+ <div class="cf"><input id="cIn" maxlength="200" placeholder="Type a message…" autocomplete="off"><button class="pri" id="cSend">Send</button></div></div>
 <div class="modal show" id="mMenu"><div class="box">
  <h2>बाघचाल</h2><p class="sub">Nepal’s classic hunt — choose your side</p><div class="seg" id="lvl"><button data-l="0">Easy</button><button data-l="1" class="on">Normal</button><button data-l="2">Hard</button></div>
  <button class="pri" data-m="g">🐐 Play Goats · vs AI Tigers</button>
@@ -220,7 +241,7 @@ function click(i){if(busy||over)return;const t=st.turn;
  if(sel!=null){const m=gen(st).find(x=>x.from==sel&&x.to==i);if(m)doMove(m);else{sel=null;hints()}}}
 function sync(){showTrail(null);pieces.forEach(p=>p&&scene.remove(p));pieces=[];st.b.forEach((v,i)=>{if(!v)return;const o=v==1?tiger():goat(),p=pos(i);o.position.copy(p);o.rotation.y=v==1?Math.atan2(p.x,p.z):(Math.random()-.5)*1.2;scene.add(o);pieces[i]=o})}
 function undo(){if(mode=='o')return;if(!started||(busy&&!over))return;let k=hist.length-1;while(k>=0&&!isH(hist[k].turn))k--;if(k<0)return;st=hist[k];hist.length=k;gid++;anims=[];sel=null;over=false;sync();$('mEnd').classList.remove('show');after()}
-function start(md){if(md!='o')closeNet();pending=[];inFlight=false;$('bAgain').textContent=md=='o'?'Rematch (swap sides)':'Play again';gid++;hist=[];started=true;th=0;ph=.95;zoom=1;cam();mode=md;human=md=='g'?2:md=='t'?1:md=='o'?onSide:0;
+function start(md){if(md!='o'){closeNet();chatReset()}$('bChat').style.display=md=='o'?'inline-block':'none';if(md=='o'&&!$('cLog').children.length)chatSys('Connected — say hi! 👋');if(md!='o')$('chat').classList.remove('show');pending=[];inFlight=false;$('bAgain').textContent=md=='o'?'Rematch (swap sides)':'Play again';gid++;hist=[];started=true;th=0;ph=.95;zoom=1;cam();mode=md;human=md=='g'?2:md=='t'?1:md=='o'?onSide:0;
  anims=[];clearMarks();sel=null;over=false;st=newState();sync();
  
  $('mMenu').classList.remove('show');$('mOnline').classList.remove('show');$('mEnd').classList.remove('show');after()}
@@ -268,7 +289,7 @@ function pump(){if(mode!='o'||over||inFlight||!pending.length||st.turn==human)re
  const m=pending.shift(),ok=gen(st).find(x=>x.k==m.k&&x.from==m.from&&x.to==m.to);
  if(ok)doMove(ok,true);else pending.length=0}
 function wire(c){conn=c;
- c.on('data',d=>{if(!d)return;if(d.t=='start')startOnline(d.side);else if(d.t=='move'&&mode=='o'){pending.push(d.m);pump()}});
+ c.on('data',d=>{if(!d)return;if(d.t=='start')startOnline(d.side);else if(d.t=='move'&&mode=='o'){pending.push(d.m);pump()}else if(d.t=='chat'&&typeof d.x=='string')chatIn(d.x.slice(0,200))});
  c.on('close',()=>{if(conn===c){conn=null;if(mode=='o'&&!over){busy=true;toast('Friend disconnected');$('msg').textContent='Friend disconnected'}else oMsg('Disconnected')}});
  c.on('error',()=>oMsg('Connection problem'))}
 function closeNet(){try{conn&&conn.close()}catch(e){}try{peer&&peer.destroy()}catch(e){}conn=null;peer=null}
@@ -292,4 +313,17 @@ function joinRoom2(){const code=$('oIn').value.trim().toUpperCase();if(code.leng
 $('bOnline').onclick=()=>{$('mMenu').classList.remove('show');$('mOnline').classList.add('show')};
 $('bHost').onclick=hostRoom;$('bJoin').onclick=joinRoom;
 $('bOBack').onclick=()=>{if(!(mode=='o'&&conn&&conn.open))closeNet();$('oCode').style.display='none';oMsg('');$('mOnline').classList.remove('show');openMenu()};
+
+/* ---------- chat ---------- */
+let unread=0;
+function chatAdd(cls,txt){const d=document.createElement('div');d.className=cls;d.textContent=txt;const l=$('cLog');l.appendChild(d);while(l.children.length>100)l.removeChild(l.firstChild);l.scrollTop=l.scrollHeight}
+function chatSys(t){chatAdd('sys',t)}
+function chatReset(){$('cLog').innerHTML='';unread=0;$('cBd').style.display='none'}
+function chatIn(t){chatAdd('fr',t);if(!$('chat').classList.contains('show')){unread++;$('cBd').textContent=unread;$('cBd').style.display='block';toast('💬 '+(t.length>28?t.slice(0,28)+'…':t))}sfx('sel')}
+function chatSend(t){t=t.trim().slice(0,200);if(!t||!conn||!conn.open){if(t)toast('Not connected');return}conn.send({t:'chat',x:t});chatAdd('me',t)}
+function chatToggle(open){const c=$('chat');const o=open==null?!c.classList.contains('show'):open;c.classList.toggle('show',o);if(o){unread=0;$('cBd').style.display='none';$('cLog').scrollTop=1e9;if(innerWidth>520)$('cIn').focus()}}
+$('bChat').onclick=()=>chatToggle();$('cX').onclick=()=>chatToggle(false);
+$('cSend').onclick=()=>{chatSend($('cIn').value);$('cIn').value='';$('cIn').focus()};
+$('cIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key=='Enter'){e.preventDefault();$('cSend').click()}});
+document.querySelectorAll('#chat .cq button').forEach(b=>b.onclick=()=>chatSend(b.textContent));
 </script></body></html>
