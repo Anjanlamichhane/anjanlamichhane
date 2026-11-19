@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Baagchal – बाघचाल 3D</title>
+<title>बाघचाल 3D — Himalayan Stone Edition</title>
+<meta name="theme-color" content="#172a2a">
+<meta name="description" content="Play Baagchal, Nepal’s classic Tigers and Goats strategy game in immersive 3D.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&family=Yatra+One&display=swap">
 <style>
 :root{--panel:rgba(255,248,235,.88);--ink:#2b1a10;--mut:#7a5f48;--line:rgba(80,50,20,.25);--gold:#e9b44c;--gold2:#c9822a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -53,10 +55,95 @@ canvas{cursor:grab}
 #chat .cf{display:flex;gap:6px;padding:6px 8px 8px}
 #cIn{flex:1;min-width:0;padding:8px 10px;font:15px 'Mukta',sans-serif;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);-webkit-user-select:text;user-select:text}
 #cSend{padding:8px 12px}
-</style></head><body>
+
+/* ===== BAAGCHAL PREMIUM UI REFRESH ===== */
+:root{--panel:rgba(15,22,37,.82);--ink:#f6f0e5;--mut:#b8b6c4;--line:rgba(255,255,255,.13);--gold:#f4c66a;--gold2:#d99535;--accent:#7ed6c2;color-scheme:dark}
+html,body{background:#090f1c;color:var(--ink);font-family:'Mukta',system-ui,sans-serif}
+body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 50% 48%,transparent 35%,rgba(4,8,17,.38) 100%)}
+canvas{z-index:0;filter:saturate(1.08) contrast(1.03)}
+.top,.hud,#chat,#toast{z-index:2}
+.top{padding:calc(16px + env(safe-area-inset-top,0px)) 20px 0;align-items:center}
+.brand{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(17,27,44,.9),rgba(32,39,56,.72));border:1px solid rgba(244,198,106,.3);border-radius:18px;padding:9px 17px;box-shadow:0 12px 36px #050a14aa;backdrop-filter:blur(18px)}
+.brand:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(var(--gold),#fff0bd,var(--gold2))}
+.brand h1{font-size:30px;letter-spacing:.5px;color:#f5cb7b;text-shadow:0 2px 18px #f0ad4b55}
+.brand span{display:block;letter-spacing:2.1px;text-transform:uppercase;font-size:10px;color:#d0c4ae}
+.btns{gap:8px}
+button{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.14);background:rgba(15,24,40,.78);color:#f4efe6;padding:9px 14px;border-radius:13px;backdrop-filter:blur(16px);box-shadow:0 5px 18px #02071255;transition:transform .2s,border-color .2s,background .2s,box-shadow .2s}
+button:hover{border-color:rgba(244,198,106,.7);background:rgba(37,48,67,.92);transform:translateY(-2px);box-shadow:0 8px 22px #02071277}
+button:active{transform:translateY(0) scale(.97)}
+button.pri{background:linear-gradient(135deg,#f7d58e,#d9963d);color:#241707;border:1px solid #ffe2a2;box-shadow:0 7px 24px #d9953540;font-weight:700}
+button.pri:hover{background:linear-gradient(135deg,#ffe5ac,#e7a747);box-shadow:0 9px 28px #e6a34066}
+.hud{bottom:calc(20px + env(safe-area-inset-bottom,0px));width:min(760px,calc(100% - 36px));grid-template-columns:1fr 1.35fr 1fr;gap:12px;align-items:stretch}
+.card,.status{background:linear-gradient(145deg,rgba(16,25,42,.9),rgba(27,34,50,.82));border:1px solid rgba(255,255,255,.13);border-radius:20px;padding:12px 14px;backdrop-filter:blur(20px);box-shadow:0 14px 40px #03081266,inset 0 1px rgba(255,255,255,.06)}
+.card.on{border-color:rgba(244,198,106,.85);box-shadow:0 0 0 1px #f4c66a66,0 0 30px #e5a84435,inset 0 1px #fff2}
+.card b{font-size:15px;letter-spacing:.4px}.card .n{font:700 34px/1 'Mukta';margin:5px 0;color:#f7d58e;text-shadow:0 2px 18px #f4c66a44}.card small{font-size:11px;letter-spacing:.35px;color:#c0bdc7}
+.status{justify-content:center;gap:3px}#turn{font-size:18px;color:#f6d58e}#msg{font-size:13px;color:#d0ced7;line-height:1.35}
+.pips{gap:6px;margin-top:8px}.pips i{width:9px;height:9px;background:#ffffff22;border:1px solid #ffffff22}.pips i.f{background:#f06d5e;box-shadow:0 0 12px #f06d5e}.pips i.t{background:#f4c66a;box-shadow:0 0 12px #f4c66a}
+.modal{z-index:8;background:rgba(3,7,15,.72);backdrop-filter:blur(14px);padding:20px;animation:veilIn .22s ease}
+@keyframes veilIn{from{opacity:0}to{opacity:1}}
+.box{position:relative;isolation:isolate;max-width:460px;padding:30px 28px 26px;border:1px solid rgba(244,198,106,.28);border-radius:28px;background:linear-gradient(150deg,rgba(25,35,53,.98),rgba(11,18,31,.98));box-shadow:0 30px 100px #000a,inset 0 1px rgba(255,255,255,.09);animation:panelIn .35s cubic-bezier(.2,.8,.2,1)}
+.box:before{content:"";position:absolute;z-index:-1;inset:0 15% auto;height:1px;background:linear-gradient(90deg,transparent,#f4c66a,transparent)}
+@keyframes panelIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.box h2{font-size:36px;color:#f5cb7b;text-shadow:0 3px 24px #f4c66a33;margin-bottom:2px}
+.box p,.box li{color:#e7e1d7;font-size:15px;line-height:1.55}.box .sub{color:#bcb7c1;margin:0 0 19px}
+.box button{margin-top:10px;padding:13px 16px;border-radius:14px;font-size:16px}
+.box .seg{padding:5px;background:#080f1d;border:1px solid #ffffff12;border-radius:15px;margin:0 0 13px}
+.box .seg button{background:transparent;border:0;box-shadow:none;color:#bcb7c1;margin:0;padding:9px}
+.box .seg button.on{background:linear-gradient(135deg,#f7d58e,#d9963d);color:#241707;box-shadow:0 4px 14px #d9953544}
+#toast{top:calc(92px + env(safe-area-inset-top,0px));background:rgba(17,27,44,.94);color:#f8e9c8;border:1px solid #f4c66a77;border-radius:14px;padding:10px 18px;box-shadow:0 10px 30px #0006;backdrop-filter:blur(18px)}
+#chat{z-index:6;background:rgba(15,24,40,.96);border:1px solid #ffffff20;border-radius:20px;box-shadow:0 20px 60px #0008;backdrop-filter:blur(20px)}
+#chat .ch{padding:12px 14px;border-bottom:1px solid #ffffff18;color:#f5d18a}#cLog div{padding:7px 11px;border-radius:14px}#cLog .me{background:linear-gradient(135deg,#f7d58e,#d9963d)}#cLog .fr{background:#ffffff12}#cIn{background:#0a1322;border-color:#ffffff20;color:#fff}
+#bChat .bd{background:#e66a5d}
+/* Subtle focus states and accessible motion */
+button:focus-visible{outline:2px solid #f4c66a;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+@media(max-width:700px){.top{padding-left:12px;padding-right:12px;align-items:flex-start}.brand{padding:7px 12px}.brand h1{font-size:24px}.brand span{font-size:9px;letter-spacing:1.3px}.btns{max-width:62%;gap:5px}.btns button{padding:8px 10px;border-radius:11px}.hud{width:calc(100% - 20px);bottom:calc(10px + env(safe-area-inset-bottom,0px));gap:6px;grid-template-columns:1fr 1.2fr 1fr}.card,.status{padding:8px 6px;border-radius:15px}.card b{font-size:12px}.card .n{font-size:27px}.card small{font-size:10px}.pips{gap:4px}.pips i{width:7px;height:7px}#turn{font-size:14px}#msg{font-size:11px}}
+@media(max-width:420px){.lb{display:none}.top{align-items:center}.btns{max-width:66%;gap:4px}.btns button{padding:7px 8px;font-size:12px}.brand h1{font-size:21px}.brand span{display:none}.hud{grid-template-columns:1fr 1.12fr 1fr}.card .n{font-size:24px}.status{padding:7px 5px}.box{padding:25px 19px 20px;border-radius:23px}.box h2{font-size:31px}}
+
+
+/* ===== PLAYER PROFILE, INTRO MOTION & LOCAL LEADERBOARD ===== */
+@keyframes heroRise{0%{opacity:0;transform:translateY(22px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes glowPulse{0%,100%{text-shadow:0 0 12px #f4c66a33,0 0 28px #f4c66a22}50%{text-shadow:0 0 20px #f4c66a99,0 0 48px #f4c66a55}}
+@keyframes floatMark{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-7px) rotate(5deg)}}
+#mMenu .box{animation:heroRise .65s cubic-bezier(.2,.8,.2,1)}
+#mMenu .box h2{font-size:clamp(38px,7vw,54px);animation:glowPulse 3s ease-in-out infinite}
+.hero-mark{font-size:38px;letter-spacing:12px;text-align:center;margin:2px 0 5px;animation:floatMark 4s ease-in-out infinite;filter:drop-shadow(0 8px 12px #0008)}
+.profile-wrap{display:flex;gap:9px;align-items:center;margin:12px 0 14px;padding:10px 12px;border:1px solid rgba(244,198,106,.22);border-radius:15px;background:rgba(255,255,255,.035)}
+.profile-avatar{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,#f4c66a,#a95f27);font-size:21px;box-shadow:0 5px 18px #d9953544}
+.profile-fields{min-width:0;flex:1;text-align:left}.profile-fields label{display:block;color:#e9c987;font-size:11px;letter-spacing:1.3px;text-transform:uppercase;margin-bottom:3px}
+#playerName{width:100%;box-sizing:border-box;padding:6px 9px;border:1px solid rgba(255,255,255,.15);border-radius:9px;background:rgba(3,9,18,.45);color:#fff;font:600 15px 'Mukta',sans-serif;outline:none;-webkit-user-select:text;user-select:text}
+#playerName:focus{border-color:#f4c66a;box-shadow:0 0 0 3px #f4c66a22}
+.menu-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.menu-actions button{margin:0;font-size:14px;padding:10px 8px}
+#bStats{border-color:rgba(244,198,106,.35);color:#f5d18a}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.stat-tile{padding:12px 7px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.045);text-align:center}
+.stat-tile strong{display:block;color:#f5d18a;font-size:27px;line-height:1.1}.stat-tile span{font-size:11px;color:#c4bfca;letter-spacing:.5px;text-transform:uppercase}
+.leaderboard{margin-top:12px;border:1px solid rgba(244,198,106,.2);border-radius:15px;overflow:hidden}
+.leaderboard h3{margin:0;padding:10px 12px;background:rgba(244,198,106,.08);font-size:14px;color:#f5d18a;letter-spacing:.5px}
+.lb-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-top:1px solid rgba(255,255,255,.08);font-size:14px}.lb-row b{color:#f5d18a;font-variant-numeric:tabular-nums}
+.stats-note{font-size:11px!important;color:#aaa6b3!important;text-align:center;margin:10px 0 0!important}
+@media(max-width:420px){.hero-mark{font-size:30px}.menu-actions button{font-size:13px}.stats-grid{gap:5px}.stat-tile strong{font-size:23px}}
+@media(prefers-reduced-motion:reduce){#mMenu .box,.hero-mark,#mMenu .box h2{animation:none!important}}
+</style>
+<style>
+/* NEPAL: stone-carved board, Himalayan slate and prayer-flag palette */
+:root{--gold:#e8c47a;--gold2:#b88748;--accent:#9ab7a0}
+html,body{background:#172a2a}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.17;background-image:repeating-linear-gradient(132deg,transparent 0 17px,rgba(221,211,180,.12) 18px,transparent 19px 37px);mix-blend-mode:soft-light}
+.brand{background:linear-gradient(145deg,rgba(24,43,42,.94),rgba(45,48,40,.82));border-color:rgba(224,190,119,.42)}
+.brand h1{color:#f0d79c;text-shadow:0 2px 18px #c29a4e55}
+.brand span{color:#d3d0bd;letter-spacing:1.5px}
+button.pri{background:linear-gradient(135deg,#ead39a,#ad7941);border-color:#f4e0b1;color:#241b12}
+.card,.status{background:linear-gradient(145deg,rgba(20,37,36,.94),rgba(42,47,41,.88));border-color:rgba(220,204,162,.22)}
+.box{background:linear-gradient(150deg,rgba(31,48,44,.99),rgba(17,29,29,.99));border-color:rgba(224,190,119,.34)}
+.box h2{color:#e9cb8a}
+#toast{border-color:#d9b56d}
+@media(prefers-reduced-motion:reduce){body:before{display:none}}
+</style>
+</head><body>
 <canvas id="c"></canvas><div id="toast"></div>
 <header class="top">
- <div class="brand"><h1>बाघचाल</h1><span>Baagchal · Tigers &amp; Goats</span></div>
+ <div class="brand"><h1>बाघचाल</h1><span>हिमाली ढुंगामा · Tigers &amp; Goats</span></div>
  <div class="btns"><button id="bMenu" class="pri">☰<span class="lb"> Menu</span></button><button id="bUndo">↩<span class="lb"> Undo</span></button><button id="bHint">💡<span class="lb"> Hint</span></button><button id="bRules">?<span class="lb"> Rules</span></button><button id="bCam">⟲<span class="lb"> View</span></button><button id="bSnd">🔊</button><button id="bChat">💬<span class="bd" id="cBd"></span></button></div>
 </header>
 <main class="hud">
@@ -70,10 +157,20 @@ canvas{cursor:grab}
  <div class="cq"><button>👍</button><button>😂</button><button>😮</button><button>🔥</button><button>GG</button></div>
  <div class="cf"><input id="cIn" maxlength="200" placeholder="Type a message…" autocomplete="off"><button class="pri" id="cSend">Send</button></div></div>
 <div class="modal show" id="mMenu"><div class="box">
- <h2>बाघचाल</h2><p class="sub">Nepal’s classic hunt — choose your side</p><div class="seg" id="lvl"><button data-l="0">Easy</button><button data-l="1" class="on">Normal</button><button data-l="2">Hard</button></div>
+ <div class="hero-mark">🏔️ 🐯 🐐</div><h2>बाघचाल</h2><p class="sub">ढुंगामाथिको पुरानो नेपाली खेल · A Himalayan stone-board game</p>
+ <div class="profile-wrap"><div class="profile-avatar">🧑</div><div class="profile-fields"><label for="playerName">Your player profile</label><input id="playerName" maxlength="18" placeholder="Enter your name" autocomplete="nickname"></div></div>
+ <div class="seg" id="lvl"><button data-l="0">Easy</button><button data-l="1" class="on">Normal</button><button data-l="2">Hard</button></div>
  <button class="pri" data-m="g">🐐 Play Goats · vs AI Tigers</button>
  <button class="pri" data-m="t">🐯 Play Tigers · vs AI Goats</button>
- <button data-m="2">👥 Two players · same screen</button><button id="bOnline" class="pri">🌐 Play online · with a friend</button><button id="bResume" style="display:none">← Back to game</button>
+ <button data-m="2">👥 Two players · same screen</button><button id="bOnline" class="pri">🌐 Play online · with a friend</button>
+ <div class="menu-actions"><button id="bStats">🏆 Stats &amp; leaderboard</button><button id="bResume" style="display:none">↩ Back to game</button></div>
+</div></div>
+<div class="modal" id="mStats"><div class="box">
+ <h2>🏆 Hall of Fame</h2><p class="sub" id="statsGreeting">Your Baagchal journey</p>
+ <div class="stats-grid"><div class="stat-tile"><strong id="statGames">0</strong><span>Games played</span></div><div class="stat-tile"><strong id="statGoats">0</strong><span>Goat wins</span></div><div class="stat-tile"><strong id="statTigers">0</strong><span>Tiger wins</span></div></div>
+ <div class="leaderboard"><h3>🏅 Local leaderboard · this device</h3><div class="lb-row"><span>🥇 🐐 Goat victories</span><b id="lbGoats">0</b></div><div class="lb-row"><span>🥈 🐯 Tiger victories</span><b id="lbTigers">0</b></div></div>
+ <p class="stats-note">Scores are saved on this device only. Online global rankings are not connected.</p>
+ <button class="pri" id="bStatsClose">Back to game menu</button>
 </div></div>
 <div class="modal" id="mOnline"><div class="box">
  <h2>🌐 Online</h2><p class="sub">Play with a friend on another device</p>
@@ -163,17 +260,33 @@ function backdrop(){const W=Math.min(innerWidth,1200),H=Math.min(innerHeight,120
  
  const tx=new THREE.CanvasTexture(c);tx.encoding=THREE.sRGBEncoding;tx.minFilter=THREE.LinearFilter;tx.generateMipmaps=false;
  if(scene.background&&scene.background.dispose)scene.background.dispose();scene.background=tx}
-const ground=new THREE.Mesh(new THREE.CircleGeometry(90,48),mat(0x3a2d3c,1));ground.rotation.x=-Math.PI/2;ground.position.y=-1.2;ground.receiveShadow=true;/* floating island: no ground */
-// board
-const plat=mesh(new THREE.CylinderGeometry(6.4,6.9,.9,8),mat(0x7a6a5a,.95),0,-.75,0);scene.add(plat);
-scene.add(mesh(new THREE.BoxGeometry(8.2,.34,8.2),mat(0x6a3d1f,.6),0,-.12,0));
-scene.add(mesh(new THREE.BoxGeometry(7.4,.4,7.4),mat(0xd09a58,.55),0,0,0));
-const lm=mat(0x3b210f,.8);
+const ground=new THREE.Mesh(new THREE.CircleGeometry(90,48),mat(0x263a36,1));ground.rotation.x=-Math.PI/2;ground.position.y=-1.2;ground.receiveShadow=true;/* the board floats above a Himalayan valley */
+// A hand-hewn mountain rock island: layered slate, fractured edges and a carved stone playing face.
+const rockA=mat(0x343d3b,1),rockB=mat(0x51544b,1),rockC=mat(0x272f30,1);
+const strata1=mesh(new THREE.CylinderGeometry(4.75,5.35,1.05,11),rockA,0,-.82,0);strata1.rotation.y=.12;scene.add(strata1);
+const strata2=mesh(new THREE.CylinderGeometry(5.05,5.65,.48,10),rockB,0,-1.45,0);strata2.rotation.y=.28;scene.add(strata2);
+const strata3=mesh(new THREE.CylinderGeometry(4.35,5.05,.42,9),rockC,0,-1.86,0);strata3.rotation.y=.05;scene.add(strata3);
+// Procedural slate texture with mineral flecks and fine natural fissures.
+const stoneCanvas=document.createElement('canvas');stoneCanvas.width=stoneCanvas.height=512;const sx=stoneCanvas.getContext('2d');
+sx.fillStyle='#77786b';sx.fillRect(0,0,512,512);let seed=41;const rand=()=>((seed=seed*16807%2147483647)-1)/2147483646;
+for(let i=0;i<15000;i++){const v=rand(),a=.025+rand()*.16;sx.fillStyle=v>.52?`rgba(235,224,190,${a})`:`rgba(20,28,28,${a})`;const r=.3+rand()*2.2;sx.beginPath();sx.arc(rand()*512,rand()*512,r,0,Math.PI*2);sx.fill()}
+for(let i=0;i<24;i++){let x=rand()*512,y=rand()*512;sx.strokeStyle='rgba(28,35,32,.24)';sx.lineWidth=.7+rand()*1.5;sx.beginPath();sx.moveTo(x,y);for(let j=0;j<5;j++){x+=(rand()-.5)*48;y+=rand()*27;sx.lineTo(x,y)}sx.stroke()}
+const stoneTex=new THREE.CanvasTexture(stoneCanvas);stoneTex.encoding=THREE.sRGBEncoding;stoneTex.wrapS=stoneTex.wrapT=THREE.RepeatWrapping;stoneTex.repeat.set(2,2);
+const stoneTop=new THREE.MeshStandardMaterial({map:stoneTex,color:0xc1b9a4,roughness:1,metalness:.02});
+const boardBase=mesh(new THREE.BoxGeometry(8.05,.5,8.05),mat(0x343a35,1),0,-.08,0);boardBase.rotation.y=.012;scene.add(boardBase);
+const boardFace=mesh(new THREE.BoxGeometry(7.55,.22,7.55),stoneTop,0,.09,0);boardFace.rotation.y=.012;scene.add(boardFace);
+// Broken stone chips around the floating cliff rim.
+for(let i=0;i<18;i++){const a=i/18*Math.PI*2,r=4.9+rand()*.45,b=mesh(new THREE.DodecahedronGeometry(.22+rand()*.32,0),i%2?rockA:rockB,Math.cos(a)*r,-1.15-rand()*.5,Math.sin(a)*r);b.rotation.set(rand()*2,rand()*2,rand()*2);b.scale.y=.55+rand()*.7;scene.add(b)}
+// Small strings of traditional red-blue prayer flags flutter around the stone platform.
+function prayerFlags(axis){const count=9;for(let i=0;i<count;i++){const t=i/(count-1),x=axis==='back'?(t-.5)*6.9:axis==='left'?-3.95:3.95,z=axis==='back'?-4.15:(t-.5)*6.9,y=1.55+Math.sin(t*Math.PI)*.24;const pole=new THREE.Vector3(x,y,z);if(i<count-1){const nt=(i+1)/(count-1),nx=axis==='back'?(nt-.5)*6.9:x,nz=axis==='back'?z:(nt-.5)*6.9;const q=new THREE.Vector3(nx,1.55+Math.sin(nt*Math.PI)*.24,nz);scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([pole,q]),new THREE.LineBasicMaterial({color:0x392c22}))) }
+ const shape=new THREE.Shape();shape.moveTo(0,0);shape.lineTo(.32,-.12);shape.lineTo(0,-.38);shape.closePath();const flag=new THREE.Mesh(new THREE.ShapeGeometry(shape),new THREE.MeshStandardMaterial({color:[0xd52d32,0x2461a4,0xf0d34b,0x23864d,0xf2eee0][i%5],side:THREE.DoubleSide,roughness:.9}));flag.position.set(x,y,z);scene.add(flag)}}
+prayerFlags('back');prayerFlags('left');prayerFlags('right');
+const lm=mat(0xd6c5a1,.9);
 function line(a,b){const p=pos(a),q=pos(b),l=p.distanceTo(q),o=new THREE.Mesh(new THREE.BoxGeometry(.06,.02,l),lm);o.position.set((p.x+q.x)/2,BY+.005,(p.z+q.z)/2);o.rotation.y=Math.atan2(q.x-p.x,q.z-p.z);o.receiveShadow=true;scene.add(o)}
 for(let i=0;i<5;i++){line(i*5,i*5+4);line(i,i+20)}
 line(0,24);line(4,20);line(2,10);line(10,22);line(22,14);line(14,2);
 const picks=[];
-for(let i=0;i<25;i++){const p=pos(i);scene.add(mesh(new THREE.CylinderGeometry(.1,.1,.03,14),lm,p.x,BY,p.z));
+for(let i=0;i<25;i++){const p=pos(i);scene.add(mesh(new THREE.CylinderGeometry(.105,.12,.045,14),mat(0xd8b978,.72),p.x,BY,p.z));
  const pk=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.3,12),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));pk.position.set(p.x,.3,p.z);pk.userData.i=i;scene.add(pk);picks.push(pk)}
 // pieces
 function tiger(){const g=new THREE.Group(),o=mat(0xe8761a,.55),k=mat(0x1c1410,.7);
@@ -184,7 +297,12 @@ function tiger(){const g=new THREE.Group(),o=mat(0xe8761a,.55),k=mat(0x1c1410,.7
  for(const s of[-1,1]){g.add(mesh(new THREE.ConeGeometry(.075,.14,8),o,s*.15,.8,-.38));g.add(mesh(new THREE.SphereGeometry(.03,8,6),k,s*.09,.64,-.6))}
  for(const[z,f]of[[-.12,.96],[.1,.97],[.3,.73]]){const t=mesh(new THREE.TorusGeometry(.325,.028,6,22),k,0,.38,z);t.scale.set(f,f*.8,1);g.add(t)}
  for(const x of[-.17,.17])for(const z of[-.25,.25])g.add(mesh(new THREE.CylinderGeometry(.07,.07,.22,8),o,x,.11,z));
- const t=mesh(new THREE.CylinderGeometry(.03,.05,.42,8),k,0,.5,.62);t.rotation.x=1;g.add(t);return g}
+ const t=mesh(new THREE.CylinderGeometry(.03,.05,.42,8),k,0,.5,.62);t.rotation.x=1;g.add(t);
+ // Amber eyes, dark pupils and small whisker pads give the tiger a clearer face.
+ const eye=mat(0xf4c34f,.35),white=mat(0xffefcf,.55);
+ for(const s of[-1,1]){g.add(mesh(new THREE.SphereGeometry(.043,10,8),eye,s*.105,.61,-.57));g.add(mesh(new THREE.SphereGeometry(.018,8,6),k,s*.105,.61,-.605));g.add(mesh(new THREE.SphereGeometry(.055,10,8),white,s*.055,.49,-.65));
+  for(let q=0;q<2;q++){const whisk=mesh(new THREE.CylinderGeometry(.006,.006,.16,5),white,s*(.15+q*.025),.47-q*.045,-.67);whisk.rotation.z=s*(.7+q*.18);g.add(whisk)}}
+ g.add(mesh(new THREE.SphereGeometry(.035,8,6),k,0,.52,-.69));return g}
 function goat(){const g=new THREE.Group(),w=mat(0xf3eee2,.85),h=mat(0x8a6a3a,.5),d=mat(0x3a2b20);
  const b=mesh(new THREE.SphereGeometry(.3,20,14),w,0,.36,0);b.scale.set(.9,.78,1.3);g.add(b);
  g.add(mesh(new THREE.SphereGeometry(.16,16,12),w,0,.55,-.38));
@@ -194,7 +312,10 @@ function goat(){const g=new THREE.Group(),w=mat(0xf3eee2,.85),h=mat(0x8a6a3a,.5)
   g.add(mesh(new THREE.SphereGeometry(.025,6,6),d,s*.07,.6,-.52))}
  const bd=mesh(new THREE.ConeGeometry(.04,.12,6),w,0,.4,-.5);bd.rotation.x=Math.PI;g.add(bd);
  for(const x of[-.15,.15])for(const z of[-.22,.22])g.add(mesh(new THREE.CylinderGeometry(.045,.045,.2,8),d,x,.1,z));
- g.add(mesh(new THREE.SphereGeometry(.06,8,6),w,0,.45,.4));return g}
+ g.add(mesh(new THREE.SphereGeometry(.06,8,6),w,0,.45,.4));
+ const eye=mat(0x241b16,.35),hoof=mat(0x302820,.8);
+ for(const s of[-1,1]){g.add(mesh(new THREE.SphereGeometry(.025,8,6),eye,s*.095,.57,-.49));g.add(mesh(new THREE.SphereGeometry(.045,8,6),hoof,s*.15,.035,-.2));g.add(mesh(new THREE.SphereGeometry(.045,8,6),hoof,s*.15,.035,.22))}
+ return g}
 /* ---------- game flow ---------- */
 let st,mode,human,busy=true,over=false,sel=null,pieces=[],anims=[];
 let gid=0,hist=[],started=false,level=1,rec=null;
@@ -204,7 +325,10 @@ function showTrail(m){while(trail.children.length)trail.remove(trail.children[0]
 const hov=new THREE.Mesh(new THREE.RingGeometry(.42,.5,28),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.75,side:THREE.DoubleSide}));hov.rotation.x=-Math.PI/2;hov.visible=false;scene.add(hov);
 function hover(e){let ok=false;if(started&&!busy&&!over&&isH(st.turn)){v2.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(v2,camera);const h=ray.intersectObjects(picks)[0];if(h){const i=h.object.userData.i;ok=st.turn==2&&st.hand>0?!st.b[i]:st.b[i]==st.turn||(sel!=null&&gen(st).some(x=>x.from==sel&&x.to==i));if(ok){const p=pos(i);hov.position.set(p.x,p.y+.06,p.z)}}}hov.visible=ok;cv.style.cursor=ok?'pointer':'grab'}
 function hint(){if(mode=='o')return;if(!started||busy||over||!isH(st.turn))return;const L=level;level=2;const m=ai(st);level=L;clearMarks();if(m.from!=null)ring(m.from,0x66ccff,.45);ring(m.to,0x66ccff,.3);toast('💡 Try the blue rings')}
-function record(w){try{const k='baagchal-wins',r=JSON.parse(localStorage.getItem(k)||'{"g":0,"t":0}');r[w==2?'g':'t']++;localStorage.setItem(k,JSON.stringify(r));rec=r}catch(e){}}
+function readStats(){try{return JSON.parse(localStorage.getItem('baagchal-stats')||'{"games":0,"g":0,"t":0,"streak":0,"best":0}') }catch(e){return{games:0,g:0,t:0,streak:0,best:0}}}
+function playerName(){return ($('playerName')?.value||localStorage.getItem('baagchal-player')||'Player').trim().slice(0,18)||'Player'}
+function refreshStats(){const r=readStats();$('statsGreeting').textContent=playerName()+"’s Baagchal journey";$('statGames').textContent=r.games;$('statGoats').textContent=r.g;$('statTigers').textContent=r.t;$('lbGoats').textContent=r.g;$('lbTigers').textContent=r.t}
+function record(w){try{const r=readStats();r.games++;r[w==2?'g':'t']++;r.streak=(r.last===w?(r.streak||0)+1:1);r.best=Math.max(r.best||0,r.streak);r.last=w;localStorage.setItem('baagchal-stats',JSON.stringify(r));const old=JSON.parse(localStorage.getItem('baagchal-wins')||'{"g":0,"t":0}');old[w==2?'g':'t']++;localStorage.setItem('baagchal-wins',JSON.stringify(old));rec=old;refreshStats()}catch(e){}}
 const isH=t=>mode=='2'||t==human;
 const ease=u=>u*u*(3-2*u);
 function anim(dur,fn,cb){anims.push({t:performance.now(),d:dur*1000,fn,cb})}
@@ -265,6 +389,7 @@ $('bHint').onclick=hint;$('bSnd').onclick=()=>{snd=!snd;$('bSnd').textContent=sn
 document.querySelectorAll('#lvl button').forEach(b=>b.onclick=()=>{level=+b.dataset.l;document.querySelectorAll('#lvl button').forEach(x=>x.classList.toggle('on',x==b))});
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k=='u')undo();if(k=='h')hint();if(k=='r')$('bCam').click();if(k=='s')$('bSnd').click()});
 $('bMenu').onclick=openMenu;$('bUndo').onclick=undo;$('bResume').onclick=()=>$('mMenu').classList.remove('show');
+$('playerName').value=localStorage.getItem('baagchal-player')||'';$('playerName').addEventListener('input',()=>{try{localStorage.setItem('baagchal-player',$('playerName').value.trim().slice(0,18))}catch(e){}});$('bStats').onclick=()=>{refreshStats();$('mStats').classList.add('show')};$('bStatsClose').onclick=()=>$('mStats').classList.remove('show');
 $('bAgain').onclick=()=>{if(mode=='o'&&conn&&conn.open){$('mEnd').classList.remove('show');begin(3-human)}else{$('mEnd').classList.remove('show');openMenu()}};$('bView').onclick=()=>$('mEnd').classList.remove('show');
 document.querySelectorAll('.modal').forEach(m=>m.addEventListener('pointerdown',e=>{if(e.target===m&&m.id!='mEnd'&&!(m.id=='mMenu'&&!started))m.classList.remove('show')}));
 addEventListener('keydown',e=>{if(e.key=='Escape'){if($('mRules').classList.contains('show'))$('mRules').classList.remove('show');else if($('mMenu').classList.contains('show')){if(started&&!over)$('mMenu').classList.remove('show')}else openMenu()}});
