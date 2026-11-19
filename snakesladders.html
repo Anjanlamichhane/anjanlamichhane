@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snakes &amp; Ladders – साँप सिँढी</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&family=Yatra+One&display=swap">
+<style>
+:root{--panel:rgba(255,248,235,.92);--ink:#2b1a10;--mut:#7a5f48;--line:rgba(80,50,20,.25);--gold:#e9b44c;--gold2:#c9822a}
+@media (prefers-color-scheme:dark){:root{--panel:rgba(32,21,16,.9);--ink:#f6ead8;--mut:#bfa98e;--line:rgba(255,230,190,.18)}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,#2a3a6e,#121a36 70%);font-family:'Mukta',system-ui,sans-serif;color:#f6ead8;-webkit-user-select:none;user-select:none}
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px}
+.brand h1{margin:0;font:400 24px/1.1 'Yatra One','Mukta',serif;color:var(--gold)}
+.brand span{font-size:12px;color:#b9c2de}
+.btns{display:flex;gap:6px}
+button,.btn{font:700 14px 'Mukta',sans-serif;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 12px;border-radius:12px;text-decoration:none;display:inline-block}
+button:hover,.btn:hover{border-color:var(--gold)}
+button:focus-visible,.btn:focus-visible{outline:3px solid var(--gold);outline-offset:1px}
+button.pri{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#2b1608;border:0}
+button:disabled{opacity:.45;cursor:default}
+#stage{min-height:0;min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px}
+canvas{display:block;border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.55)}
+.hud{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:6px 12px 12px}
+.pl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pc{display:flex;align-items:center;gap:8px;background:var(--panel);border:2px solid var(--line);color:var(--ink);border-radius:14px;padding:5px 12px 5px 8px;transition:.2s}
+.pc.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold),0 4px 18px rgba(233,180,76,.35)}
+.pc i{width:20px;height:20px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.pc b{font-size:14px;display:block;line-height:1.1}.pc small{font-size:12px;color:var(--mut)}
+.dz{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px 14px;color:var(--ink)}
+.dice{width:60px;height:60px;background:#fffdf7;border-radius:13px;border:3px solid var(--dc,#999);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:7px;box-shadow:0 4px 10px rgba(0,0,0,.35),inset 0 -3px 0 rgba(0,0,0,.08);flex:none}
+.dice span{display:flex;align-items:center;justify-content:center}
+.dice span.on::after{content:"";width:10px;height:10px;border-radius:50%;background:#1b1b1b}
+.dice.roll{animation:shake .14s infinite}
+@keyframes shake{0%{transform:rotate(-8deg) translateY(0)}50%{transform:rotate(8deg) translateY(-4px)}100%{transform:rotate(-8deg) translateY(0)}}
+.dz .t{display:flex;flex-direction:column;gap:4px;min-width:150px}
+#msg{font-size:14px;color:var(--mut);line-height:1.25}
+#bRoll{padding:10px 18px;font-size:17px}
+@media (min-aspect-ratio:6/5){
+ .app{grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:auto minmax(0,1fr)}
+ .top{grid-column:1/-1}
+ .hud{grid-column:2;grid-row:2;flex-direction:column;justify-content:center;gap:16px;padding:12px 16px 12px 4px}
+ .pl{flex-direction:column;width:100%}.pc{width:100%}
+ .dz{width:100%;justify-content:center}}
+@media (max-width:520px){.lb{display:none}.brand span{display:none}.dz .t{min-width:110px}}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,6,20,.6);backdrop-filter:blur(4px);padding:16px;z-index:5}
+.modal.show{display:flex}
+.box{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:22px;padding:22px;max-width:420px;width:100%;max-height:90%;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.box h2{margin:0 0 4px;font:400 30px 'Yatra One','Mukta',serif;color:var(--gold2);text-align:center}
+.box p,.box li{font-size:14.5px;line-height:1.45}.box .sub{text-align:center;color:var(--mut);margin:0 0 14px}
+.box button{display:block;width:100%;margin-top:8px;padding:12px;font-size:16px}
+.box ul{padding-left:18px;margin:8px 0}
+.seg{display:flex;gap:6px;margin-bottom:6px;align-items:center}.seg span{font-size:14px;color:var(--mut);margin-right:4px}
+.box .seg button{margin:0;padding:8px;font-size:14px;flex:1;width:auto}.seg button.on{background:var(--gold);color:#2b1608;border-color:var(--gold)}
+.box input{width:100%;padding:12px;font:700 24px 'Mukta';text-align:center;letter-spacing:6px;text-transform:uppercase;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--ink);-webkit-user-select:text;user-select:text}
+#oCode{display:none;text-align:center;font:700 40px/1.2 'Mukta';letter-spacing:8px;color:var(--gold2);margin:10px 0 0}
+#toast{position:fixed;top:calc(64px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-10px);background:var(--panel);color:var(--ink);border:1px solid var(--gold);border-radius:999px;padding:8px 18px;font-weight:700;opacity:0;pointer-events:none;transition:.3s;z-index:4;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){.dice.roll{animation:none}}
+</style></head><body>
+<div class="app">
+ <header class="top">
+  <div class="brand"><h1>साँप सिँढी</h1><span>Snakes &amp; Ladders</span></div>
+  <div class="btns"><button id="bMenu" class="pri">☰<span class="lb"> Menu</span></button><button id="bRules">?<span class="lb"> Rules</span></button><button id="bSnd" title="Sound">🔊</button><a class="btn" href="games.html" title="All games">🎮<span class="lb"> Games</span></a></div>
+ </header>
+ <div id="stage"><canvas id="c" aria-label="Snakes and ladders board"></canvas></div>
+ <section class="hud">
+  <div class="pl" id="pl"></div>
+  <div class="dz"><div class="dice" id="dice"></div><div class="t"><button id="bRoll" class="pri" disabled>Roll dice</button><div id="msg"></div></div></div>
+ </section>
+</div>
+<div id="toast"></div>
+
+<div class="modal show" id="mMenu"><div class="box">
+ <h2>साँप सिँढी</h2><p class="sub">Climb the ladders, dodge the snakes, reach HOME first</p>
+ <div class="seg" id="np"><span>Players</span><button data-n="2" class="on">2</button><button data-n="3">3</button><button data-n="4">4</button></div>
+ <button class="pri" data-m="c">🤖 Play vs computer</button>
+ <button class="pri" data-m="2">👥 Pass &amp; play · same screen</button>
+ <button class="pri" id="bOnline">🌐 Play online · with a friend</button>
+ <button id="bResume" style="display:none">← Back to game</button>
+</div></div>
+<div class="modal" id="mRules"><div class="box"><h2>How to play</h2>
+ <ul><li>Take turns rolling the dice and moving your pawn forward from <b>START</b> (square 1) towards <b>HOME</b> (square 100).</li>
+ <li>Land at the bottom of a <b>ladder</b> and you climb up to its top.</li>
+ <li>Land on a snake’s <b>head</b> and you slide down to its tail.</li>
+ <li>Roll a <b>6</b> and you get another turn.</li>
+ <li>You must roll the <b>exact number</b> to land on 100. If your roll is too high, you stay where you are.</li>
+ <li>First pawn to reach HOME wins.</li></ul>
+ <button class="pri" id="bClose">Got it</button></div></div>
+<div class="modal" id="mOnline"><div class="box">
+ <h2>🌐 Online</h2><p class="sub">Play with a friend on another device</p>
+ <button class="pri" id="bHost">Create a room</button>
+ <div id="oCode"></div>
+ <p class="sub" style="margin-top:14px">or join a friend’s room</p>
+ <input id="oIn" maxlength="4" placeholder="CODE" autocomplete="off">
+ <button class="pri" id="bJoin">Join room</button>
+ <p class="sub" id="oStatus" style="margin-top:12px;min-height:20px"></p>
+ <button id="bOBack">← Back</button>
+</div></div>
+<div class="modal" id="mEnd"><div class="box"><h2 id="eT"></h2><p class="sub" id="eP"></p><button class="pri" id="bAgain">Play again</button><button id="bView">View board</button></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const cv=$('c'),ctx=cv.getContext('2d');
+let S=0,cell=0,M=0,dpr=1,bg=null;
+
+/* ---------- board data ---------- */
+const CELLCOL=['#d6342c','#f4d21f','#2f8fd6','#4a9a3f','#9a9a9a'];
+const LAD=[[6,27],[11,32],[35,76],[41,62],[61,81],[66,87],[71,91]];
+const SNK=[
+ {h:98,t:79,c1:'#2e8b3d',c2:'#c3e66b',pat:'spots'},
+ {h:95,t:75,c1:'#e8661a',c2:'#ffd23f',pat:'bands'},
+ {h:93,t:37,c1:'#f2f6fb',c2:'#3a86c8',pat:'zig'},
+ {h:77,t:60,c1:'#c62828',c2:'#f6a21e',pat:'bands'},
+ {h:72,t:51,c1:'#2b2f8f',c2:'#f0a020',pat:'spots'},
+ {h:68,t:17,c1:'#1f7a34',c2:'#9ad04a',pat:'spots'},
+ {h:63,t:22,c1:'#d04a1e',c2:'#f4c542',pat:'bands'},
+ {h:53,t:31,c1:'#e9f3fb',c2:'#2a8fd6',pat:'spots'},
+ {h:34,t:12,c1:'#f08a1c',c2:'#c62828',pat:'bands'}
+];
+const TC=['#e91e8c','#16237a','#ff7a00','#7b2cbf'];
+const TN=['Pink','Navy','Orange','Purple'];
+
+function C(n){const i=n-1,r=Math.floor(i/10);let c=i%10;if(r%2)c=9-c;return{x:M+(c+.5)*cell,y:S-M-(r+.5)*cell}}
+function shade(hex,f){const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const t=f<0?0:255,p=Math.abs(f);r=Math.round(r+(t-r)*p);g=Math.round(g+(t-g)*p);b=Math.round(b+(t-b)*p);return'rgb('+r+','+g+','+b+')'}
+
+/* ---------- snake geometry ---------- */
+function mkPath(a,b,k){
+ const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,nx=-uy,ny=ux,N=120,sg=k%2?1:-1,
+  w=Math.max(1.5,L/(cell*1.9)),amp=cell*(.42+(k%3)*.08),pts=[],lo=M+cell*.2,hi=S-M-cell*.2;
+ for(let i=0;i<=N;i++){const t=i/N,env=Math.pow(Math.sin(Math.PI*t),.6),off=sg*amp*Math.sin(Math.PI*w*t)*env;
+  let x=a.x+dx*t+nx*off,y=a.y+dy*t+ny*off;x=Math.min(hi,Math.max(lo,x));y=Math.min(hi,Math.max(lo,y));
+  const r=cell*(t<.2?.17+.11*(t/.2):.28*(1-Math.pow((t-.2)/.8,1.6))+.03);pts.push({x,y,r,t})}
+ for(let i=0;i<=N;i++){const p=pts[Math.max(0,i-1)],q=pts[Math.min(N,i+1)],d=Math.hypot(q.x-p.x,q.y-p.y)||1;pts[i].nx=-(q.y-p.y)/d;pts[i].ny=(q.x-p.x)/d}
+ return pts}
+function buildPaths(){SNK.forEach((s,k)=>{s.pts=mkPath(C(s.h),C(s.t),k)})}
+
+/* ---------- drawing the static board ---------- */
+function drawLadder(g,a,b){
+ const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,nx=-uy,ny=ux,w=cell*.27,pad=cell*.2;
+ const A={x:a.x+ux*pad,y:a.y+uy*pad},B={x:b.x-ux*pad,y:b.y-uy*pad},len=L-2*pad;
+ g.save();g.lineCap='round';
+ const rail=(s,col,wd,ox,oy)=>{g.strokeStyle=col;g.lineWidth=wd;g.beginPath();g.moveTo(A.x+nx*w*s+ox,A.y+ny*w*s+oy);g.lineTo(B.x+nx*w*s+ox,B.y+ny*w*s+oy);g.stroke()};
+ const rungs=(col,wd,ox,oy)=>{g.strokeStyle=col;g.lineWidth=wd;const n=Math.max(3,Math.round(len/(cell*.32)));for(let i=0;i<=n;i++){const t=i/n,x=A.x+(B.x-A.x)*t,y=A.y+(B.y-A.y)*t;g.beginPath();g.moveTo(x-nx*w+ox,y-ny*w+oy);g.lineTo(x+nx*w+ox,y+ny*w+oy);g.stroke()}};
+ rail(-1,'rgba(0,0,0,.3)',cell*.1,cell*.05,cell*.07);rail(1,'rgba(0,0,0,.3)',cell*.1,cell*.05,cell*.07);rungs('rgba(0,0,0,.28)',cell*.07,cell*.05,cell*.07);
+ rungs('#a8814f',cell*.075,0,0);rungs('#d9b27a',cell*.045,0,0);
+ rail(-1,'#8f6a3a',cell*.1,0,0);rail(1,'#8f6a3a',cell*.1,0,0);
+ rail(-1,'#e3bd86',cell*.065,0,0);rail(1,'#e3bd86',cell*.065,0,0);
+ rail(-1,'rgba(255,255,255,.5)',cell*.02,-cell*.012,-cell*.012);rail(1,'rgba(255,255,255,.5)',cell*.02,-cell*.012,-cell*.012);
+ g.restore()}
+
+function drawSnake(g,s){
+ const P=s.pts,N=P.length,dk=shade(s.c1,-.62),arc=(p,r,ox=0,oy=0)=>{g.beginPath();g.arc(p.x+ox,p.y+oy,r,0,7);g.fill()};
+ g.save();
+ g.fillStyle='rgba(0,0,0,.26)';for(const p of P)arc(p,p.r,cell*.04,cell*.07);
+ g.fillStyle=dk;for(const p of P)arc(p,p.r+cell*.024);
+ g.fillStyle=s.c1;for(const p of P)arc(p,p.r);
+ // shading along the lower side
+ g.fillStyle='rgba(0,0,0,.14)';for(const p of P)arc(p,p.r*.62,p.nx*p.r*.4,p.ny*p.r*.4);
+ // pattern
+ for(let i=2;i<N;i++){const p=P[i];if(p.r<cell*.05)continue;
+  if(s.pat=='bands'){if(Math.floor(i/5)%2==0){g.fillStyle=s.c2;arc(p,p.r*.8)}}
+  else if(s.pat=='spots'){if(i%8==0){g.fillStyle=shade(s.c2,-.35);arc(p,p.r*.52);g.fillStyle=s.c2;arc(p,p.r*.4)}}
+  else{if(i%6==0){const sg=(i/6|0)%2?1:-1;g.fillStyle=s.c2;arc(p,p.r*.36,p.nx*p.r*.5*sg,p.ny*p.r*.5*sg);arc(p,p.r*.22)}}}
+ // highlight
+ g.fillStyle='rgba(255,255,255,.24)';for(const p of P)arc(p,p.r*.26,-p.nx*p.r*.38,-p.ny*p.r*.38);
+ // head
+ const h=P[0],q=P[6],hx=h.x-q.x,hy=h.y-q.y,l=Math.hypot(hx,hy)||1,ux=hx/l,uy=hy/l;
+ g.translate(h.x+ux*cell*.13,h.y+uy*cell*.13);g.rotate(Math.atan2(uy,ux));
+ g.strokeStyle='#d0262a';g.lineWidth=cell*.03;g.lineCap='round';g.beginPath();g.moveTo(cell*.26,0);g.lineTo(cell*.46,0);g.moveTo(cell*.46,0);g.lineTo(cell*.55,-cell*.055);g.moveTo(cell*.46,0);g.lineTo(cell*.55,cell*.055);g.stroke();
+ g.fillStyle='rgba(0,0,0,.26)';g.beginPath();g.ellipse(cell*.03,cell*.07,cell*.32,cell*.23,0,0,7);g.fill();
+ g.fillStyle=dk;g.beginPath();g.ellipse(0,0,cell*.33,cell*.245,0,0,7);g.fill();
+ g.fillStyle=s.c1;g.beginPath();g.ellipse(0,0,cell*.31,cell*.225,0,0,7);g.fill();
+ g.fillStyle=s.c2;g.beginPath();g.ellipse(-cell*.07,0,cell*.14,cell*.09,0,0,7);g.fill();
+ g.fillStyle='rgba(255,255,255,.22)';g.beginPath();g.ellipse(cell*.02,-cell*.09,cell*.2,cell*.05,0,0,7);g.fill();
+ for(const sg of[-1,1]){g.fillStyle='#fffbe6';g.beginPath();g.arc(cell*.11,sg*cell*.115,cell*.06,0,7);g.fill();g.fillStyle='#c9a21a';g.beginPath();g.arc(cell*.115,sg*cell*.115,cell*.04,0,7);g.fill();g.fillStyle='#111';g.beginPath();g.ellipse(cell*.12,sg*cell*.115,cell*.014,cell*.035,0,0,7);g.fill()}
+ g.fillStyle=dk;for(const sg of[-1,1]){g.beginPath();g.arc(cell*.27,sg*cell*.05,cell*.017,0,7);g.fill()}
+ g.restore()}
+
+function drawBoard(g){
+ let sd=7;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;
+ const gr=g.createLinearGradient(0,0,S,S);gr.addColorStop(0,'#2f6e2b');gr.addColorStop(1,'#1d4a1f');g.fillStyle=gr;g.fillRect(0,0,S,S);
+ for(let i=0;i<2600;i++){const x=rnd()*S,y=rnd()*S,l=4+rnd()*9;g.strokeStyle='hsla('+(90+rnd()*45)+','+(40+rnd()*30)+'%,'+(20+rnd()*24)+'%,.75)';g.lineWidth=1;g.beginPath();g.moveTo(x,y);g.lineTo(x+(rnd()-.5)*5,y-l);g.stroke()}
+ g.fillStyle='rgba(0,0,0,.4)';g.fillRect(M-3,M-3,S-2*M+6,S-2*M+6);
+ g.textAlign='center';g.textBaseline='middle';
+ for(let n=1;n<=100;n++){const c=C(n),x0=c.x-cell/2,y0=c.y-cell/2,r=Math.floor((n-1)/10);let col=((n-1)%10);if(r%2)col=9-col;
+  let f=CELLCOL[(col+2*r)%5];if(n==1)f='#e8762a';
+  g.fillStyle=f;g.fillRect(x0,y0,cell,cell);
+  const sh=g.createLinearGradient(x0,y0,x0+cell,y0+cell);sh.addColorStop(0,'rgba(255,255,255,.18)');sh.addColorStop(.5,'rgba(255,255,255,0)');sh.addColorStop(1,'rgba(0,0,0,.14)');g.fillStyle=sh;g.fillRect(x0,y0,cell,cell);
+  g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=Math.max(1,cell*.02);g.strokeRect(x0,y0,cell,cell);
+  g.fillStyle='#161616';
+  if(n==100){// home icon
+   const hx=c.x,hy=c.y-cell*.1,w=cell*.5;g.fillStyle='#8a4b22';g.fillRect(hx-w*.38,hy,w*.76,w*.5);g.fillStyle='#b5301f';g.beginPath();g.moveTo(hx-w*.55,hy+1);g.lineTo(hx,hy-w*.42);g.lineTo(hx+w*.55,hy+1);g.closePath();g.fill();
+   g.fillStyle='#ffe6a8';g.fillRect(hx-w*.1,hy+w*.2,w*.2,w*.3);g.fillStyle='#161616';g.font='700 '+(cell*.15)+'px Mukta,sans-serif';g.fillText('HOME',c.x,y0+cell*.84);continue}
+  g.font='700 '+(cell*.29)+'px Mukta,sans-serif';g.fillText(n,c.x,y0+cell*.3);
+  if(n==1){g.font='700 '+(cell*.15)+'px Mukta,sans-serif';g.fillText('START',c.x,y0+cell*.62);g.strokeStyle='#2a8a3a';g.fillStyle='#2a8a3a';g.lineWidth=cell*.05;g.beginPath();g.moveTo(x0+cell*.22,y0+cell*.8);g.lineTo(x0+cell*.7,y0+cell*.8);g.stroke();g.beginPath();g.moveTo(x0+cell*.8,y0+cell*.8);g.lineTo(x0+cell*.64,y0+cell*.7);g.lineTo(x0+cell*.64,y0+cell*.9);g.fill()}}
+ // fold line like a folded board
+ g.fillStyle='rgba(0,0,0,.16)';g.fillRect(S/2-1,M,2,S-2*M);g.fillStyle='rgba(255,255,255,.12)';g.fillRect(S/2+1,M,1.5,S-2*M);
+ LAD.forEach(l=>drawLadder(g,C(l[0]),C(l[1])));
+ SNK.forEach(s=>drawSnake(g,s))}
+
+/* ---------- state ---------- */
+let P=[],turn=0,mode=null,over=false,busy=false,started=false,gid=0,q=[],mySlot=0,nPl=2,conf=[],snd=true,AC=null,tt=null;
+function slotOff(i){return{x:(i%2?.15:-.15)*cell,y:(i<2?-.08:.12)*cell}}
+function home(pos,i){if(pos==0)return{x:M+cell*(.22+.42*i),y:S-M*.42};const c=C(pos),o=slotOff(i);return{x:c.x+o.x,y:c.y+o.y}}
+
+/* ---------- pawns, confetti, main loop ---------- */
+function pawn(x,y,z,col){const k=cell;
+ ctx.fillStyle='rgba(0,0,0,.38)';ctx.beginPath();ctx.ellipse(x,y+k*.14,k*.17,k*.06,0,0,7);ctx.fill();
+ y-=z;const gr=ctx.createLinearGradient(x-k*.17,0,x+k*.17,0);gr.addColorStop(0,shade(col,.4));gr.addColorStop(.45,col);gr.addColorStop(1,shade(col,-.45));
+ ctx.fillStyle=gr;ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(1.5,k*.03);ctx.lineJoin='round';
+ ctx.beginPath();ctx.moveTo(x-k*.18,y+k*.13);ctx.quadraticCurveTo(x-k*.1,y-k*.02,x-k*.05,y-k*.1);ctx.lineTo(x+k*.05,y-k*.1);ctx.quadraticCurveTo(x+k*.1,y-k*.02,x+k*.18,y+k*.13);ctx.closePath();ctx.fill();ctx.stroke();
+ const rg=ctx.createRadialGradient(x-k*.04,y-k*.22,k*.01,x,y-k*.18,k*.11);rg.addColorStop(0,shade(col,.65));rg.addColorStop(.6,col);rg.addColorStop(1,shade(col,-.4));
+ ctx.fillStyle=rg;ctx.beginPath();ctx.arc(x,y-k*.18,k*.1,0,7);ctx.fill();ctx.stroke()}
+let last=0;
+function loop(now){requestAnimationFrame(loop);if(!S)return;const dt=Math.min(.05,(now-last)/1000||.016);last=now;
+ ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,S,S);if(bg)ctx.drawImage(bg,0,0,S,S);
+ [...P.keys()].sort((a,b)=>(P[a].vy-P[a].vz)-(P[b].vy-P[b].vz)).forEach(i=>{const p=P[i];if(p.vx!=null)pawn(p.vx,p.vy,p.vz||0,p.col)});
+ for(let i=conf.length-1;i>=0;i--){const c=conf[i];c.x+=c.vx*dt*60;c.y+=c.vy*dt*60;c.vy+=.12*dt*60;c.a+=c.va;if(c.y>S+20)conf.splice(i,1);else{ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.a);ctx.fillStyle=c.c;ctx.fillRect(-c.s/2,-c.s/4,c.s,c.s/2);ctx.restore()}}}
+
+function size(){const r=$('stage').getBoundingClientRect(),n=Math.max(240,Math.floor(Math.min(r.width-8,r.height-8))),d=Math.min(2,window.devicePixelRatio||1);
+ if(n==S&&d==dpr&&bg)return;S=n;dpr=d;cv.style.width=cv.style.height=S+'px';cv.width=cv.height=Math.round(S*dpr);M=S*.05;cell=(S-2*M)/10;buildPaths();
+ bg=document.createElement('canvas');bg.width=bg.height=cv.width;const g=bg.getContext('2d');g.scale(dpr,dpr);drawBoard(g);
+ P.forEach((p,i)=>{const t=home(p.pos,i);p.vx=t.x;p.vy=t.y;p.vz=0})}
+
+/* ---------- sound + ui helpers ---------- */
+function tone(f1,f2,d,type,vol){if(!snd)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;o.type=type||'sine';o.frequency.setValueAtTime(f1,t);o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(vol||.1,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
+const sfx={hop:()=>tone(420,560,.08,'triangle'),dice:()=>{for(let i=0;i<6;i++)setTimeout(()=>tone(180+Math.random()*220,110,.05,'square',.05),i*80)},
+ up:()=>[0,1,2,3].forEach(i=>setTimeout(()=>tone(400+i*110,430+i*110,.13,'triangle'),i*110)),down:()=>tone(520,60,.95,'sawtooth',.09),win:()=>[0,1,2,3,4].forEach(i=>setTimeout(()=>tone(500+i*130,520+i*130,.25,'sine'),i*150))};
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2000)}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function tw(ms,fn){return new Promise(res=>{const t0=performance.now();(function f(now){const u=Math.min(1,(now-t0)/ms);fn(u);u<1?requestAnimationFrame(f):res()})(t0)})}
+const ease=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+const FACES=[[4],[0,8],[0,4,8],[0,2,6,8],[0,2,4,6,8],[0,2,3,5,6,8]];
+function face(v){const d=$('dice');d.innerHTML='';for(let i=0;i<9;i++){const s=document.createElement('span');if(v&&FACES[v-1].includes(i))s.className='on';d.appendChild(s)}}
+function hud(){const pl=$('pl');pl.innerHTML='';P.forEach((p,i)=>{const d=document.createElement('div');d.className='pc'+(i==turn&&!over?' on':'');
+  d.innerHTML='<i style="background:'+p.col+'"></i><div><b></b><small></small></div>';d.querySelector('b').textContent=p.name;d.querySelector('small').textContent=p.pos==0?'at start':p.pos==100?'HOME!':'square '+p.pos;pl.appendChild(d)});
+ const p=P[turn];if(!p)return;$('dice').style.setProperty('--dc',p.col);
+ if(over)return;
+ $('msg').textContent=busy?'':p.kind=='h'?(mode=='2'?p.name+', roll the dice':'Your turn — roll the dice'):p.kind=='a'?p.name+' is rolling…':'Waiting for your friend…'}
+
+/* ---------- game flow ---------- */
+function startGame(md,n,slot){gid++;mode=md;over=false;busy=false;turn=0;q=[];conf=[];started=true;if(md!='o')closeNet();mySlot=slot||0;nPl=n;
+ P=Array.from({length:n},(_,i)=>({pos:0,col:TC[i],vz:0,
+  name:md=='c'?(i==0?'You':'Computer'+(n>2?' '+i:'')):md=='2'?TN[i]+' player':(i==mySlot?'You':'Friend'),
+  kind:md=='c'?(i==0?'h':'a'):md=='2'?'h':(i==mySlot?'h':'r')}));
+ P.forEach((p,i)=>{const t=home(0,i);p.vx=t.x;p.vy=t.y});
+ ['mMenu','mOnline','mEnd','mRules'].forEach(m=>$(m).classList.remove('show'));$('bAgain').textContent=md=='o'?'Rematch':'Play again';
+ face(0);next()}
+function next(){hud();if(over)return;busy=false;const p=P[turn];$('bRoll').disabled=p.kind!='h';hud();
+ if(p.kind=='a'){const g=gid;setTimeout(()=>{if(g==gid&&!busy&&!over)rollNow()},900)}else if(p.kind=='r')pump()}
+function rollNow(){if(busy||over||!P.length)return;const v=1+(Math.random()*6|0);if(mode=='o'&&conn&&conn.open&&P[turn].kind=='h')conn.send({t:'roll',v});doRoll(v)}
+function pump(){if(mode!='o'||busy||over||!q.length||!P[turn]||P[turn].kind!='r')return;doRoll(q.shift())}
+async function rollDice(v){const d=$('dice');d.classList.add('roll');sfx.dice();for(let i=0;i<8;i++){face(1+(Math.random()*6|0));await sleep(75)}d.classList.remove('roll');face(v)}
+async function hop(p,i,n){const a={x:p.vx,y:p.vy},b=home(n,i);sfx.hop();await tw(200,u=>{const e=ease(u);p.vx=a.x+(b.x-a.x)*e;p.vy=a.y+(b.y-a.y)*e;p.vz=Math.sin(Math.PI*u)*cell*.4});p.vz=0;p.pos=n}
+async function climb(p,i,l){const a={x:p.vx,y:p.vy},o=slotOff(i),e=C(l[1]);sfx.up();await tw(1000,u=>{const k=ease(u);p.vx=a.x+(e.x+o.x-a.x)*k;p.vy=a.y+(e.y+o.y-a.y)*k;p.vz=0});p.pos=l[1]}
+async function slide(p,i,s){const o=slotOff(i),P0=s.pts,N=P0.length-1;sfx.down();await tw(1500,u=>{const k=Math.min(N,Math.round(ease(u)*N)),pt=P0[k];p.vx=pt.x+o.x*.5;p.vy=pt.y+o.y*.5;p.vz=0});p.pos=s.t;const h=home(p.pos,i);await tw(220,u=>{p.vx+=(h.x-p.vx)*u;p.vy+=(h.y-p.vy)*u})}
+async function doRoll(v){const g=gid;busy=true;$('bRoll').disabled=true;const i=turn,p=P[i];hud();
+ await rollDice(v);if(g!=gid)return;
+ const tgt=p.pos+v;
+ if(tgt>100){toast('Need exactly '+(100-p.pos)+' to reach HOME');await sleep(700)}
+ else{
+  for(let s=p.pos+1;s<=tgt;s++){await hop(p,i,s);if(g!=gid)return}
+  const L=LAD.find(l=>l[0]==tgt),Sn=SNK.find(s=>s.h==tgt);
+  if(L){toast('🪜 Ladder! Climb to '+L[1]);await sleep(350);if(g!=gid)return;await climb(p,i,L)}
+  else if(Sn){toast('🐍 Snake! Slide to '+Sn.t);await sleep(350);if(g!=gid)return;await slide(p,i,Sn)}
+  if(g!=gid)return}
+ hud();
+ if(p.pos==100){win(i);return}
+ if(v==6)toast(p.kind=='h'&&mode!='2'?'You rolled a 6 — roll again!':p.name+' rolled a 6 — another turn!');else turn=(turn+1)%P.length;
+ await sleep(300);if(g!=gid)return;next()}
+function win(i){over=true;busy=true;$('bRoll').disabled=true;sfx.win();const cols=['#e91e8c','#f4d21f','#2f8fd6','#4a9a3f','#ff7a00','#fff'];
+ for(let k=0;k<160;k++)conf.push({x:Math.random()*S,y:-Math.random()*S*.5,vx:(Math.random()-.5)*3,vy:Math.random()*2,c:cols[k%6],s:6+Math.random()*7,a:Math.random()*6,va:(Math.random()-.5)*.3});
+ hud();const p=P[i];setTimeout(()=>{if(over){$('eT').textContent=p.name=='You'?'You win! 🎉':p.name+' wins! 🎉';$('eP').textContent='Reached HOME first';$('mEnd').classList.add('show')}},1100)}
+
+/* ---------- online (WebRTC via PeerJS) ---------- */
+let peer=null,conn=null;
+const oMsg=t=>{$('oStatus').textContent=t};
+const CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function wire(c){conn=c;
+ c.on('data',d=>{if(!d)return;if(d.t=='start')startGame('o',2,mySlot);else if(d.t=='roll'&&mode=='o'&&Number.isInteger(d.v)&&d.v>=1&&d.v<=6){q.push(d.v);pump()}});
+ c.on('close',()=>{if(conn===c){conn=null;if(mode=='o'&&!over){busy=true;$('bRoll').disabled=true;toast('Friend disconnected');$('msg').textContent='Friend disconnected'}else oMsg('Disconnected')}});
+ c.on('error',()=>oMsg('Connection problem'))}
+function closeNet(){try{conn&&conn.close()}catch(e){}try{peer&&peer.destroy()}catch(e){}conn=null;peer=null}
+function needPeer(cb){if(window.Peer)return cb();oMsg('Loading online library…');
+ const el=document.createElement('script');el.src='https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js';
+ el.onload=()=>window.Peer?cb():oMsg('Online library failed to load');el.onerror=()=>oMsg('Online library blocked or failed to load — check your internet or ad-blocker');document.head.appendChild(el)}
+function hostRoom(){needPeer(hostRoom2)}
+function hostRoom2(){closeNet();$('oCode').style.display='none';oMsg('Creating room…');mySlot=0;
+ const code=Array.from({length:4},()=>CH[Math.random()*CH.length|0]).join('');
+ peer=new Peer('snakes-'+code);const hto=setTimeout(()=>oMsg('Can’t reach the matchmaking server (0.peerjs.com). Try other Wi-Fi or mobile data.'),8000);
+ peer.on('open',()=>{clearTimeout(hto);$('oCode').textContent=code;$('oCode').style.display='block';oMsg('Share this code with your friend. Waiting…')});
+ peer.on('connection',c=>{if(conn&&conn.open){c.close();return}c.on('open',()=>{wire(c);startGame('o',2,0);c.send({t:'start'})})});
+ peer.on('error',e=>{clearTimeout(hto);if(e.type=='unavailable-id')hostRoom2();else oMsg('Could not create room ('+e.type+')')})}
+function joinRoom(){needPeer(joinRoom2)}
+function joinRoom2(){const code=$('oIn').value.trim().toUpperCase();if(code.length!=4){oMsg('Enter the 4-letter code');return}
+ closeNet();oMsg('Connecting…');mySlot=1;peer=new Peer();
+ const to=setTimeout(()=>oMsg('Still trying… check the code and your internet'),12000);
+ peer.on('open',()=>{const c=peer.connect('snakes-'+code,{reliable:true});c.on('open',()=>{clearTimeout(to);wire(c);oMsg('Connected! Starting…')})});
+ peer.on('error',e=>{clearTimeout(to);oMsg(e.type=='peer-unavailable'?'Room not found — check the code':'Could not connect ('+e.type+')')})}
+
+/* ---------- wiring the page ---------- */
+const openMenu=()=>{$('mRules').classList.remove('show');$('bResume').style.display=started&&!over?'block':'none';$('mMenu').classList.add('show')};
+$('bMenu').onclick=openMenu;$('bResume').onclick=()=>$('mMenu').classList.remove('show');
+$('bRules').onclick=()=>$('mRules').classList.add('show');$('bClose').onclick=()=>$('mRules').classList.remove('show');
+$('bSnd').onclick=()=>{snd=!snd;$('bSnd').textContent=snd?'🔊':'🔇';sfx.hop()};
+document.querySelectorAll('#np button').forEach(b=>b.onclick=()=>{nPl=+b.dataset.n;document.querySelectorAll('#np button').forEach(x=>x.classList.toggle('on',x==b))});
+document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>startGame(b.dataset.m,nPl));
+$('bOnline').onclick=()=>{$('mMenu').classList.remove('show');$('mOnline').classList.add('show')};
+$('bHost').onclick=hostRoom;$('bJoin').onclick=joinRoom;
+$('bOBack').onclick=()=>{if(!(mode=='o'&&conn&&conn.open))closeNet();$('oCode').style.display='none';oMsg('');$('mOnline').classList.remove('show');openMenu()};
+$('oIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key=='Enter')joinRoom()});
+$('bRoll').onclick=()=>{if(P[turn]&&P[turn].kind=='h')rollNow()};
+$('bAgain').onclick=()=>{$('mEnd').classList.remove('show');if(mode=='o'&&conn&&conn.open){conn.send({t:'start'});startGame('o',2,mySlot)}else openMenu()};
+$('bView').onclick=()=>$('mEnd').classList.remove('show');
+document.querySelectorAll('.modal').forEach(m=>m.addEventListener('pointerdown',e=>{if(e.target===m&&m.id!='mEnd'&&!(m.id=='mMenu'&&!started))m.classList.remove('show')}));
+addEventListener('keydown',e=>{if(document.querySelector('.modal.show'))return;if(e.key==' '||e.key=='Enter'){if(P[turn]&&P[turn].kind=='h'&&!busy&&!over){e.preventDefault();rollNow()}}});
+new ResizeObserver(size).observe($('stage'));addEventListener('resize',size);
+size();face(0);requestAnimationFrame(loop);
+</script>
+</body></html>

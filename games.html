@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Games — Anjan Lamichhane</title>
+<meta name="description" content="Play games built by Anjan Lamichhane — alone, or online with a friend.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&family=Yatra+One&display=swap">
+<style>
+:root{--bg:#eef1f8;--card:#ffffff;--ink:#16203d;--mut:#5b6685;--line:rgba(22,32,61,.14);--gold:#e9b44c;--gold2:#c9822a;--btn:#1d2a4d;--btnink:#fff;--board:#1d2a4d;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111833;--card:#19234a;--ink:#f3ecdd;--mut:#a9b2d0;--line:rgba(255,236,200,.16);--btn:var(--gold);--btnink:#2b1608;--board:#0e1530}}
+:root[data-theme="dark"]{--bg:#111833;--card:#19234a;--ink:#f3ecdd;--mut:#a9b2d0;--line:rgba(255,236,200,.16);--btn:var(--gold);--btnink:#2b1608;--board:#0e1530}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Mukta',system-ui,sans-serif;font-size:17px;line-height:1.5}
+.flags{display:block;width:100%;height:46px}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px 56px}
+.back{display:inline-block;margin:6px 0 18px;color:var(--mut);text-decoration:none;font-weight:600;font-size:15px}
+.back:hover,.back:focus-visible{color:var(--ink);text-decoration:underline}
+h1{margin:0;font:400 clamp(38px,8vw,56px)/1.05 'Yatra One','Mukta',serif;color:var(--ink)}
+.lead{margin:10px 0 28px;max-width:46ch;color:var(--mut)}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.game{display:grid;grid-template-columns:112px 1fr auto;gap:18px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 18px 14px 14px;text-decoration:none;color:inherit;transition:border-color .2s,transform .2s}
+.game:hover,.game:focus-visible{border-color:var(--gold2);transform:translateY(-2px);outline:none}
+.game:focus-visible{box-shadow:0 0 0 3px var(--gold)}
+.thumb{width:112px;height:112px;border-radius:12px;background:var(--board);display:block}
+.game h2{margin:0;font:400 26px/1.15 'Yatra One','Mukta',serif}
+.game h2 small{font:600 15px 'Mukta';color:var(--mut);margin-left:8px}
+.game p{margin:4px 0 6px;color:var(--mut);font-size:15.5px}
+.meta{font-size:14px;font-weight:600;color:var(--gold2)}
+.play{background:var(--btn);color:var(--btnink);font:700 16px 'Mukta';padding:10px 20px;border-radius:12px;white-space:nowrap}
+.soon{grid-template-columns:1fr;border-style:dashed;background:transparent;color:var(--mut);text-align:center;padding:22px;font-size:15.5px;pointer-events:none}
+@media (max-width:560px){
+ .game{grid-template-columns:84px 1fr;gap:14px}
+ .thumb{width:84px;height:84px}
+ .game h2{font-size:22px}.game h2 small{display:block;margin:2px 0 0}
+ .play{grid-column:1/-1;text-align:center}}
+@media (prefers-reduced-motion:reduce){.game{transition:none}.game:hover{transform:none}}
+</style></head><body>
+<svg class="flags" viewBox="0 0 760 46" preserveAspectRatio="none" aria-hidden="true" id="flags"></svg>
+<div class="wrap">
+ <a class="back" href="/">← Back to anjanlamichhane.com.np</a>
+ <h1>Games</h1>
+ <p class="lead">Pick a game to play. Some can be played with a friend on another device.</p>
+ <ul id="list"><noscript><li><a class="game" style="grid-template-columns:1fr" href="anjangame.html">Baagchal — play</a></li></noscript></ul>
+</div>
+<script>
+/* ===== Add new games here. One object per game. ===== */
+const BOARD='<svg class="thumb" viewBox="0 0 100 100" aria-hidden="true"><g stroke="#e9b44c" stroke-width="1.4" stroke-linecap="round" fill="none" opacity=".85"><path d="M14 14H86V86H14Z M14 32H86 M14 50H86 M14 68H86 M32 14V86 M50 14V86 M68 14V86 M14 14L86 86 M86 14L14 86 M50 14L86 50L50 86L14 50Z"/></g><g fill="#e8761a" stroke="#1c1410" stroke-width="1.2"><circle cx="14" cy="14" r="6"/><circle cx="86" cy="14" r="6"/><circle cx="14" cy="86" r="6"/><circle cx="86" cy="86" r="6"/></g><g fill="#f3eee2" stroke="#8a6a3a" stroke-width="1"><circle cx="50" cy="50" r="4.6"/><circle cx="32" cy="32" r="4.6"/><circle cx="68" cy="50" r="4.6"/><circle cx="50" cy="86" r="4.6"/></g></svg>';
+const SNAKE='<svg class="thumb" viewBox="0 0 100 100" aria-hidden="true"><defs><clipPath id="sc"><rect x="6" y="6" width="88" height="88" rx="6"/></clipPath></defs><g clip-path="url(#sc)"><rect x="6" y="6" width="88" height="88" fill="#2f6e2b"/><g opacity=".95"><rect x="6" y="6" width="22" height="22" fill="#f4d21f"/><rect x="28" y="6" width="22" height="22" fill="#2f8fd6"/><rect x="50" y="6" width="22" height="22" fill="#d6342c"/><rect x="72" y="6" width="22" height="22" fill="#4a9a3f"/><rect x="6" y="28" width="22" height="22" fill="#9a9a9a"/><rect x="28" y="28" width="22" height="22" fill="#d6342c"/><rect x="50" y="28" width="22" height="22" fill="#f4d21f"/><rect x="72" y="28" width="22" height="22" fill="#2f8fd6"/><rect x="6" y="50" width="22" height="22" fill="#4a9a3f"/><rect x="28" y="50" width="22" height="22" fill="#f4d21f"/><rect x="50" y="50" width="22" height="22" fill="#9a9a9a"/><rect x="72" y="50" width="22" height="22" fill="#d6342c"/><rect x="6" y="72" width="22" height="22" fill="#e8762a"/><rect x="28" y="72" width="22" height="22" fill="#4a9a3f"/><rect x="50" y="72" width="22" height="22" fill="#2f8fd6"/><rect x="72" y="72" width="22" height="22" fill="#f4d21f"/></g><g stroke="#8f6a3a" stroke-width="3" stroke-linecap="round"><path d="M70 90L82 16M82 90L94 16" stroke="#e3bd86"/><path d="M71 76H83M73 62H85M75 48H87M77 34H89" stroke="#d9b27a" stroke-width="2.4"/></g><path d="M18 14C40 30 6 46 30 60S44 84 22 90" fill="none" stroke="#14301a" stroke-width="11" stroke-linecap="round"/><path d="M18 14C40 30 6 46 30 60S44 84 22 90" fill="none" stroke="#2e8b3d" stroke-width="8" stroke-linecap="round"/><path d="M18 14C40 30 6 46 30 60S44 84 22 90" fill="none" stroke="#c3e66b" stroke-width="3" stroke-dasharray="1 7" stroke-linecap="round"/><ellipse cx="17" cy="13" rx="8" ry="6" fill="#2e8b3d" stroke="#14301a" stroke-width="1.5"/><circle cx="19" cy="11" r="1.6" fill="#fff"/><circle cx="19" cy="15" r="1.6" fill="#fff"/></g></svg>';
+const GAMES=[
+ {name:'Baagchal',nepali:'बाघचाल',desc:'Nepal’s classic hunt. Four tigers against twenty goats on a 3D board.',meta:'1 player vs computer · 2 players · online with a friend',url:'anjangame.html',thumb:BOARD},
+ {name:'Snakes & Ladders',nepali:'साँप सिँढी',desc:'Roll the dice, climb the ladders and dodge the snakes. First pawn home wins.',meta:'2–4 players · vs computer · same screen · online with a friend',url:'snakesladders.html',thumb:SNAKE}
+];
+/* ===================================================== */
+const ul=document.getElementById('list');
+GAMES.forEach(g=>{const li=document.createElement('li');
+ li.innerHTML='<a class="game" href="'+g.url+'">'+g.thumb+'<div><h2>'+g.name+(g.nepali?'<small>'+g.nepali+'</small>':'')+'</h2><p>'+g.desc+'</p><span class="meta">'+g.meta+'</span></div><span class="play">Play</span></a>';
+ ul.appendChild(li)});
+const soon=document.createElement('li');soon.innerHTML='<div class="game soon">More games are on the way.</div>';ul.appendChild(soon);
+/* prayer-flag bunting, same colours as the game backdrop */
+(function(){const C=['#3b6fd4','#f4f1e8','#d94a3a','#3fa066','#e9b44c'],n=19,w=760/n;let h='<path d="M0 6Q380 30 760 6" fill="none" stroke="#8a6a3a" stroke-width="1.5" vector-effect="non-scaling-stroke"/>';
+ for(let i=0;i<n;i++){const x=i*w+w*.15,t=(x+w*.35)/760,y=6+Math.sin(Math.PI*t)*12;h+='<path d="M'+x+' '+(y)+'h'+(w*.7)+'l'+(-w*.35)+' 18z" fill="'+C[i%5]+'" opacity=".92" transform="translate(0,'+(0)+')"/>'}
+ document.getElementById('flags').innerHTML=h})();
+</script>
+</body></html>
