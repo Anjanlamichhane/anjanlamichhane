@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ludo Royale</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<script defer src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 :root{--bg1:#fdf2f8;--bg2:#dbeafe;--card:#ffffffd9;--ink:#1e1b4b;--mut:#6b7280;--line:#c7d2fe;--cell:#fff;--shadow:#0002;--r:#ef4444;--g:#22c55e;--y:#eab308;--b:#3b82f6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#1e1b4b;--bg2:#0f172a;--card:#1e293bcc;--ink:#f1f5f9;--mut:#94a3b8;--line:#334155;--cell:#e2e8f0;--shadow:#0008}}
@@ -228,10 +229,34 @@ function confetti(n=60){for(let i=0;i<n;i++){const c=document.createElement('div
 function winScreen(){sfx('win');confetti(90);$('#rks').innerHTML=G.rank.map((s,i)=>`<div class="rk" style="color:${COL[s]}">${['🥇','🥈','🥉','4️⃣'][i]} <span data-w="${s}"></span></div>`).join('');G.rank.forEach(s=>$(`[data-w="${s}"]`).textContent=G.names[s]);$('#win').classList.add('on')}
 function again(){$('#win').classList.remove('on');if(!online){newGame({act:G.act,type:G.type,names:G.names,peer:{}})}else if(isHost())hostStart();else{show('online')}}
 function leave(){paused=false;$('#win').classList.remove('on');if(room){try{room.leave()}catch(e){}room=null;online=false}G=null;$('#chb').classList.remove('on');$('#chat').classList.remove('on');$('#msgs').innerHTML='';$('#pre').style.display='flex';$('#lob').style.display='none';show('menu')}
+// ---- peer-to-peer rooms (used outside Claude, e.g. on your own site) ----
+function peerRoom(code,create){return new Promise((res,rej)=>{
+if(!window.Peer)return rej(new Error('nopeer'));
+const L={},H=[],R={},conns={};let roster=[],prev=[],my=null,pn=null,hc=null,ok=false,tries=0;
+const fire=(t,m)=>(L[t]||[]).forEach(f=>{try{f(m)}catch(e){}});
+const peersOf=()=>roster.map(p=>({peer:p.peer,presence:p.presence||{},isMe:p.peer===my,sameTab:p.peer===my,kind:'viewer',guest:false,by:null}));
+const setRoster=l=>{const old=prev;roster=l;const cur=peersOf();const joined=cur.filter(p=>!old.some(o=>o.peer===p.peer)),left=old.filter(o=>!cur.some(p=>p.peer===o.peer));prev=cur;H.forEach(f=>{try{f({peers:cur,joined,left,updated:[]})}catch(e){}})};
+const bc=o=>Object.values(conns).forEach(c=>{try{c.open&&c.send(o)}catch(e){}});
+const hostPush=()=>{const l=Object.keys(R).map(k=>({peer:k,presence:R[k]}));bc({t:'roster',l});setRoster(l)};
+const hostDeliver=(topic,data,from)=>{bc({t:'msg',topic,data,from});fire(topic,{topic,data,peer:from,isMe:from===my,sameTab:from===my,kind:'viewer',guest:false,by:null})};
+const r={code,
+emit:async(topic,data)=>{if(create)hostDeliver(topic,data,my);else if(hc&&hc.open)hc.send({t:'emit',topic,data})},
+on:(t,f)=>{(L[t]=L[t]||[]).push(f);return()=>{L[t]=L[t].filter(x=>x!==f)}},
+presence:async patch=>{if(create){R[my]={...R[my],...patch};hostPush()}else if(hc&&hc.open)hc.send({t:'pres',patch})},
+peers:()=>peersOf(),onPeers:f=>{H.push(f);return()=>{}},leave:async()=>{try{pn.destroy()}catch(e){}}};
+const done=()=>{ok=true;res(r)};
+const startHost=c=>{code=c;r.code=c;pn=new Peer('ludoroyale-'+c.toLowerCase());
+pn.on('open',id=>{my=id;R[id]={};pn.on('connection',cn=>{cn.on('data',d=>{if(!d)return;if(d.t==='hello'){if(Object.keys(R).length>=8)return cn.close();conns[cn.peer]=cn;R[cn.peer]=R[cn.peer]||{};hostPush()}else if(d.t==='pres'&&R[cn.peer]){R[cn.peer]={...R[cn.peer],...d.patch};hostPush()}else if(d.t==='emit'&&R[cn.peer])hostDeliver(d.topic,d.data,cn.peer)});cn.on('close',()=>{delete conns[cn.peer];delete R[cn.peer];hostPush()})});hostPush();done()});
+pn.on('error',e=>{if(!ok){if(e.type==='unavailable-id'&&tries++<4){try{pn.destroy()}catch(x){}startHost(Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[rnd(24)]).join(''))}else rej(e)}})};
+if(create)startHost(code);else{pn=new Peer();
+pn.on('open',id=>{my=id;hc=pn.connect('ludoroyale-'+code.toLowerCase(),{reliable:true});hc.on('open',()=>{hc.send({t:'hello'});done()});hc.on('data',d=>{if(!d)return;if(d.t==='roster')setRoster(d.l);else if(d.t==='msg')fire(d.topic,{topic:d.topic,data:d.data,peer:d.from,isMe:d.from===my,sameTab:d.from===my,kind:'viewer',guest:false,by:null})});hc.on('close',()=>setRoster([]))});
+pn.on('error',e=>{if(!ok)rej(e)})}
+setTimeout(()=>{if(!ok)rej(new Error('timeout'))},12000)})}
 // ---- online ----
 async function joinRoom(create){name=($('#nm').value.trim()||'Player').slice(0,14);try{localStorage.setItem('ln',name)}catch(e){}
 let code=create?Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[rnd(24)]).join(''):$('#cd').value.trim().toUpperCase();if(code.length!==4)return alert('Enter the 4-letter room code');
 let r=null;try{const c=await claude.use('room');if(c)r=await c.join('ludo-'+code.toLowerCase())}catch(e){}
+if(!r){const o=$('#offl');o.textContent='Connecting…';o.style.color='var(--mut)';o.style.display='block';try{r=await peerRoom(code,create);code=r.code||code;o.style.display='none'}catch(e){o.style.color='#ef4444';o.textContent=e&&e.type==='peer-unavailable'?'Room not found — check the code.':'Couldn’t connect. Check your internet and the room code.';return}}
 if(!r){$('#offl').style.display='block';return}
 room=r;online=true;const host=create;r.presence({name,host,code});
 r.on('chat',m=>chatIn(m));r.on('start',m=>{const d=m.data;if(!d||!d.act)return;const hp=r.peers().find(p=>p.peer===m.peer);if(!hp||!hp.presence.host)return;newGame({act:d.act,type:d.type,names:d.names,peer:d.peer,host:m.peer})});
